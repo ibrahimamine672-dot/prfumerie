@@ -1,0 +1,83 @@
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.loading-logo {
+  text-align: center;
+}
+
+.loading-brand {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.loading-tagline {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.4em;
+  color: var(--color-text-dim);
+  margin-top: 8px;
+}
+
+.loading-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 200px;
+}
+
+.loading-bar {
+  flex: 1;
+  height: 2px;
+  background: var(--color-bg-tertiary);
+  overflow: hidden;
+  border-radius: 1px;
+}
+
+.loading-bar-fill {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.3s ease;
+  border-radius: 1px;
+}
+
+.loading-percentage {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  min-width: 28px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .loading-brand {
+    font-size: 1.8rem;
+    letter-spacing: 0.18em;
+  }
+}
+
+@media (max-width: 480px) {
+  .loading-brand {
+    font-size: 1.5rem;
+  }
+}

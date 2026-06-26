@@ -1,0 +1,136 @@
+.perfume-card {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--color-white);
+  border: 1px solid var(--color-glass-border);
+  transition: all 0.4s var(--transition-smooth);
+}
+
+.perfume-card:hover {
+  border-color: var(--color-gold);
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-link {
+  display: block;
+  text-decoration: none;
+}
+
+.card-image-wrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+.card-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--transition-smooth);
+}
+
+.perfume-card:hover .card-image-wrap img {
+  transform: scale(1.08);
+}
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.02);
+  opacity: 0;
+  transition: all 0.4s ease;
+}
+
+.perfume-card:hover .card-overlay {
+  opacity: 1;
+}
+
+.card-view {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  border: 1px solid var(--color-text);
+  padding: 10px 28px;
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(16px);
+  transition: all 0.4s var(--transition-smooth);
+}
+
+.perfume-card:hover .card-view {
+  transform: translateY(0);
+}
+
+.card-view:hover {
+  background: var(--color-text);
+  color: var(--color-white);
+}
+
+.card-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  background: var(--color-accent);
+  color: var(--color-white);
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+
+.card-info {
+  padding: 20px 16px;
+}
+
+.card-brand {
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--color-text-dim);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.card-name {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 10px;
+  line-height: 1.2;
+  transition: color 0.3s ease;
+}
+
+.perfume-card:hover .card-name {
+  color: var(--color-accent);
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-category {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.card-price {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
