@@ -162,7 +162,9 @@ const perfumes = [
 const adminUser = {
   name: "Admin",
   email: "admin@parfum.com",
-  password: "admin123",
+  phone: "+33123456789",
+  location: "Paris, France",
+  password: "Admin@123",
   role: "admin"
 };
 
@@ -178,7 +180,7 @@ async function seed() {
     console.log(`${createdPerfumes.length} perfumes seeded`);
 
     await User.create(adminUser);
-    console.log('Admin user created (admin@parfum.com / admin123)');
+    console.log(`Admin user created (${adminUser.email} / ${adminUser.password})`);
 
     await mongoose.disconnect();
     console.log('Seeding complete');

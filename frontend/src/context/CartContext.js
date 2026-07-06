@@ -1,17 +1,32 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 const CartContext = createContext();
 
+const CART_KEY = 'parfum_cart';
+
+function loadCart() {
+  try {
+    const saved = localStorage.getItem(CART_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function CartProvider({ children }) {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(loadCart);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(CART_KEY, JSON.stringify(items));
+  }, [items]);
 
   const addItem = useCallback((perfume, quantity = 1) => {
     setItems(prev => {
-      const existing = prev.find(item => item.id === perfume.id);
+      const existing = prev.find(item => item.id === perfume.id || item._id === perfume._id);
       if (existing) {
         return prev.map(item =>
-          item.id === perfume.id
+          (item.id === perfume.id || item._id === perfume._id)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
@@ -22,7 +37,7 @@ export function CartProvider({ children }) {
   }, []);
 
   const removeItem = useCallback((id) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+    setItems(prev => prev.filter(item => item.id !== id && item._id !== id));
   }, []);
 
   const updateQuantity = useCallback((id, quantity) => {
@@ -32,7 +47,7 @@ export function CartProvider({ children }) {
     }
     setItems(prev =>
       prev.map(item =>
-        item.id === id ? { ...item, quantity } : item
+        item.id === id || item._id === id ? { ...item, quantity } : item
       )
     );
   }, [removeItem]);

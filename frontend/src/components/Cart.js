@@ -42,7 +42,7 @@ export default function Cart() {
             <div className="cart-items">
               {items.map(item => (
                 <motion.div
-                  key={item.id}
+                  key={item.id || item._id}
                   className="cart-item"
                   layout
                   initial={{ opacity: 0, x: 20 }}
@@ -55,11 +55,11 @@ export default function Cart() {
                     <p className="cart-item-size">{item.size}</p>
                     <div className="cart-item-controls">
                       <div className="quantity-controls">
-                        <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
+                        <button onClick={() => updateQuantity(item.id || item._id, item.quantity - 1)}>−</button>
                         <span>{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                        <button onClick={() => updateQuantity(item.id || item._id, item.quantity + 1)}>+</button>
                       </div>
-                      <button className="cart-item-remove" onClick={() => removeItem(item.id)}>
+                      <button className="cart-item-remove" onClick={() => removeItem(item.id || item._id)}>
                         Remove
                       </button>
                     </div>

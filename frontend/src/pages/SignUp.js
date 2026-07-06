@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import API_URL from '../config';
 import './SignUp.css';
-
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://yourdomain.com/api'
-  : 'http://localhost:5001/api';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({

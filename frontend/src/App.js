@@ -1,5 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
+import { AuthProvider } from './context/AuthContext';
+import { WishlistProvider } from './context/WishlistContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
@@ -10,30 +13,40 @@ import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 import Checkout from './pages/Checkout';
 import AdminOrders from './pages/AdminOrders';
+import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
 import './styles/global.css';
 
 function App() {
   return (
-    <CartProvider>
-      <Router>
-        <LoadingScreen />
-        <div className="page-wrapper">
-          <Navbar />
-          <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/admin/orders" element={<AdminOrders />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
-    </CartProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <WishlistProvider>
+        <CartProvider>
+        <Router>
+          <LoadingScreen />
+          <div className="page-wrapper">
+            <Navbar />
+            <main>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      </CartProvider>
+      </WishlistProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

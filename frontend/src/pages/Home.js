@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { perfumes } from '../data/perfumes';
@@ -7,77 +7,127 @@ import './Home.css';
 
 const bestsellers = perfumes.filter(p => p.bestseller);
 
+function useMousePosition() {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+    const handler = (e) => setPos({ x: e.clientX, y: e.clientY });
+    window.addEventListener('mousemove', handler);
+    return () => window.removeEventListener('mousemove', handler);
+  }, []);
+  return pos;
+}
+
 function HeroSection() {
   const ref = useRef(null);
+  const mousePos = useMousePosition();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"]
   });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   return (
     <section className="hero" ref={ref}>
       <motion.div className="hero-bg" style={{ y }}>
         <div className="hero-gradient-bg" />
-        <div className="hero-orbs">
-          <div className="hero-orb hero-orb-1" />
-          <div className="hero-orb hero-orb-2" />
-          <div className="hero-orb hero-orb-3" />
-        </div>
       </motion.div>
 
+      <div className="hero-accent-line" />
+
       <motion.div className="hero-content" style={{ opacity }}>
-        <motion.span
-          className="hero-eyebrow"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
-          Established 1924 &middot; Paris
-        </motion.span>
+        <div className="hero-content-inner">
+          <motion.span
+            className="hero-eyebrow"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            <span className="eyebrow-line" />
+            Established 1924 &middot; Paris
+            <span className="eyebrow-line" />
+          </motion.span>
 
-        <motion.h1
-          className="hero-title"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-        >
-          The Essence<br /><span className="accent-gold">of Elegance</span>
-        </motion.h1>
+          <motion.h1
+            className="hero-title"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
+          >
+            The Essence<br /><span className="accent-gold">of Quiet Luxury</span>
+          </motion.h1>
 
-        <motion.p
-          className="hero-subtitle"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-        >
-          Where artistry meets the finest ingredients to create<br />
-          fragrances that transcend time.
-        </motion.p>
+          <div className="hero-divider">
+            <span className="hero-divider-diamond" />
+          </div>
+
+          <motion.p
+            className="hero-subtitle"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+          >
+            Rare botanicals, elegant woods, and luminous musks composed for
+            a signature that lingers with intention.
+          </motion.p>
+
+          <motion.div
+            className="hero-trust"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 1 }}
+          >
+            <span>Original Products</span>
+            <span>Fast Delivery</span>
+            <span>Secure Payment</span>
+          </motion.div>
+
+          <motion.div
+            className="hero-cta"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.1 }}
+          >
+            <Link to="/products" className="btn-primary hero-btn">
+              <span>Explore Collection</span>
+              <svg className="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
+            <Link to="/product/1" className="btn-secondary hero-btn">
+              <span>Our Story</span>
+            </Link>
+          </motion.div>
+        </div>
 
         <motion.div
-          className="hero-cta"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.1 }}
+          className="hero-showcase"
+          initial={{ opacity: 0, x: 56 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          aria-hidden="true"
         >
-          <Link to="/products" className="btn-primary">
-            Explore Collection
-          </Link>
-          <Link to="/product/1" className="btn-secondary">
-            Our Story
-          </Link>
+          <div className="hero-product-card">
+            <div className="hero-product-image">
+              <img src="/images/perfumes/lumiere-doree.jpg" alt="" />
+            </div>
+            <div className="hero-product-meta">
+              <span>Parfum</span>
+              <strong>Lumière Dorée</strong>
+            </div>
+          </div>
         </motion.div>
       </motion.div>
 
-      <div className="hero-scroll-indicator">
-        <motion.div
-          className="scroll-line"
-          animate={{ y: [0, 12, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
+      <motion.div
+        className="hero-mouse-glow"
+        animate={{
+          x: mousePos.x - 200,
+          y: mousePos.y - 200,
+        }}
+        transition={{ type: 'spring', damping: 50, stiffness: 200 }}
+      />
     </section>
   );
 }

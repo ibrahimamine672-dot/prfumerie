@@ -1,0 +1,41 @@
+services:
+  # ── Frontend (Dev with hot-reload) ──
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      # Le navigateur tourne hors de Docker → utiliser localhost (port mappé)
+      - REACT_APP_API_URL=http://localhost:5000/api
+
+  # ── Backend (Dev with nodemon) ──
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/parfum
+      - JWT_SECRET=dev_secret_key_123
+      - CLIENT_URL=http://localhost:3000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # ── MongoDB ──
+  mongodb:
+    ports:
+      - "27017:27017"

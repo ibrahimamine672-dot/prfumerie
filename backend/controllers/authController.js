@@ -41,6 +41,8 @@ exports.register = async (req, res) => {
       role: user.role,
       discountCode: user.discountCode,
       discountPercent: 15,
+      completedOrders: user.completedOrders,
+      freeItemAvailable: user.freeItemAvailable,
       token: generateToken(user._id)
     });
   } catch (error) {
@@ -59,6 +61,8 @@ exports.login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        completedOrders: user.completedOrders,
+        freeItemAvailable: user.freeItemAvailable,
         token: generateToken(user._id)
       });
     } else {
@@ -74,6 +78,8 @@ exports.getMe = async (req, res) => {
     _id: req.user._id,
     name: req.user.name,
     email: req.user.email,
-    role: req.user.role
+    role: req.user.role,
+    completedOrders: req.user.completedOrders,
+    freeItemAvailable: req.user.freeItemAvailable
   });
 };

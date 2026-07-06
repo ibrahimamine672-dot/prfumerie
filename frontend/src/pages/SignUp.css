@@ -4,7 +4,9 @@
   align-items: center;
   justify-content: center;
   padding: 120px 20px 60px;
-  background: var(--color-bg-secondary);
+  background:
+    linear-gradient(135deg, rgba(104, 116, 101, 0.1), rgba(201, 162, 77, 0.12)),
+    var(--color-bg-secondary);
   position: relative;
 }
 
@@ -12,9 +14,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 60% 50% at 50% 20%, rgba(196, 138, 122, 0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(196, 168, 130, 0.03) 0%, transparent 50%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), transparent);
   pointer-events: none;
 }
 
@@ -30,9 +30,10 @@
   align-items: center;
   gap: 24px;
   padding: 28px 32px;
-  background: linear-gradient(135deg, rgba(196, 138, 122, 0.08), rgba(196, 168, 130, 0.06));
-  border: 1px solid rgba(196, 138, 122, 0.15);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(201, 162, 77, 0.12), rgba(232, 220, 200, 0.36));
+  border: 1px solid rgba(201, 162, 77, 0.22);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   margin-bottom: 32px;
 }
 
@@ -46,13 +47,13 @@
   justify-content: center;
   width: 72px;
   height: 72px;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  background: linear-gradient(135deg, var(--color-gold), var(--color-accent-dark));
   color: var(--color-white);
   font-family: var(--font-heading);
   font-size: 1.4rem;
   font-weight: 800;
   border-radius: 50%;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   box-shadow: 0 4px 16px rgba(196, 138, 122, 0.3);
 }
 
@@ -73,10 +74,10 @@
 /* Form Card */
 .signup-card {
   background: var(--color-white);
-  border: 1px solid var(--color-glass-border);
-  border-radius: 8px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--radius-lg);
   padding: 48px;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 28px 70px rgba(17, 17, 17, 0.12);
 }
 
 .signup-header {
@@ -90,7 +91,7 @@
   font-weight: 700;
   color: var(--color-text);
   margin-bottom: 12px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .signup-subtitle {
@@ -130,9 +131,9 @@
 
 .form-group input {
   padding: 14px 16px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-glass-border);
-  border-radius: 4px;
+  background: #fffdf8;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: var(--radius-sm);
   font-family: var(--font-body);
   font-size: 0.9rem;
   color: var(--color-text);
@@ -148,7 +149,7 @@
 .form-group input:focus {
   border-color: var(--color-gold);
   background: var(--color-white);
-  box-shadow: 0 0 0 3px rgba(196, 168, 130, 0.1);
+  box-shadow: 0 0 0 4px rgba(201, 162, 77, 0.12);
 }
 
 .form-hint {
@@ -161,7 +162,7 @@
   padding: 14px 18px;
   background: rgba(220, 38, 38, 0.06);
   border: 1px solid rgba(220, 38, 38, 0.12);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: #dc2626;
   font-size: 0.8rem;
   line-height: 1.6;
@@ -170,14 +171,14 @@
 .btn-submit {
   width: 100%;
   padding: 18px 40px;
-  background: var(--color-text);
+  background: linear-gradient(135deg, #111111, #2a2418);
   color: var(--color-white);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.4s var(--transition-smooth);
   margin-top: 8px;
@@ -186,7 +187,7 @@
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: var(--color-accent);
+  background: linear-gradient(135deg, var(--color-gold), var(--color-accent-dark));
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
@@ -194,26 +195,6 @@
 .btn-submit:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.btn-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: var(--color-white);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 /* Footer */
@@ -228,25 +209,6 @@
   font-size: 0.8rem;
   color: var(--color-text-muted);
   margin-bottom: 8px;
-}
-
-.link-accent {
-  color: var(--color-accent);
-  background: none;
-  border: none;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: color 0.3s ease;
-  padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  text-decoration-color: rgba(196, 138, 122, 0.3);
-}
-
-.link-accent:hover {
-  color: var(--color-accent-dark);
-  text-decoration-color: var(--color-accent);
 }
 
 .signup-privacy {
@@ -268,11 +230,11 @@
 
 .success-card {
   background: var(--color-white);
-  border: 1px solid var(--color-glass-border);
-  border-radius: 8px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--radius-lg);
   padding: 56px 48px;
   text-align: center;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 28px 70px rgba(17, 17, 17, 0.12);
 }
 
 .success-icon {
@@ -303,9 +265,9 @@
 
 /* Discount Code Card */
 .discount-code-card {
-  background: linear-gradient(135deg, rgba(196, 138, 122, 0.06), rgba(196, 168, 130, 0.04));
-  border: 1px solid rgba(196, 138, 122, 0.15);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(201, 162, 77, 0.1), rgba(232, 220, 200, 0.32));
+  border: 1px solid rgba(201, 162, 77, 0.18);
+  border-radius: var(--radius-lg);
   padding: 28px;
   margin-bottom: 32px;
 }
@@ -342,7 +304,7 @@
   color: var(--color-accent-dark);
   padding: 4px 12px;
   background: rgba(196, 138, 122, 0.1);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .discount-info {
@@ -354,7 +316,7 @@
 /* Success Details */
 .success-details {
   background: var(--color-bg-secondary);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   padding: 20px;
   margin-bottom: 32px;
 }

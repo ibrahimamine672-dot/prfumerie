@@ -54,9 +54,17 @@ exports.getPerfumeById = async (req, res) => {
   }
 };
 
+const allowedFields = ['name', 'brand', 'price', 'category', 'gender', 'image', 'description', 'notes', 'size', 'bestseller', 'stock', 'active'];
+
 exports.createPerfume = async (req, res) => {
   try {
-    const perfume = await Perfume.create(req.body);
+    const data = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        data[field] = req.body[field];
+      }
+    }
+    const perfume = await Perfume.create(data);
     res.status(201).json(perfume);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -65,7 +73,13 @@ exports.createPerfume = async (req, res) => {
 
 exports.updatePerfume = async (req, res) => {
   try {
-    const perfume = await Perfume.findByIdAndUpdate(req.params.id, req.body, {
+    const data = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        data[field] = req.body[field];
+      }
+    }
+    const perfume = await Perfume.findByIdAndUpdate(req.params.id, data, {
       new: true,
       runValidators: true
     });

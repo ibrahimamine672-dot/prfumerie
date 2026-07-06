@@ -18,7 +18,10 @@ const userSchema = new mongoose.Schema({
     }
   },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  discountCode: { type: String, default: null }
+  discountCode: { type: String, default: null },
+  // Loyalty program
+  completedOrders: { type: Number, default: 0, min: 0 },
+  freeItemAvailable: { type: Boolean, default: false }
 }, {
   timestamps: true
 });

@@ -1,7 +1,17 @@
 const mongoose = require('mongoose');
 
 const orderItemSchema = new mongoose.Schema({
-  perfumeId: { type: Number, required: true },
+  perfumeId: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+    validate: {
+      validator(value) {
+        return typeof value === 'number'
+          || (typeof value === 'string' && value.trim().length > 0);
+      },
+      message: 'Perfume ID is required'
+    }
+  },
   name: { type: String, required: true },
   price: { type: Number, required: true },
   quantity: { type: Number, required: true, min: 1 },
@@ -26,6 +36,10 @@ const orderSchema = new mongoose.Schema({
   discountPercent: { type: Number, default: 0, min: 0, max: 100 },
   discountAmount: { type: Number, default: 0, min: 0 },
   total: { type: Number, required: true, min: 0 },
+
+  // Loyalty — free item
+  freeItemApplied: { type: Boolean, default: false },
+  freeItemDiscount: { type: Number, default: 0, min: 0 },
 
   // Status
   status: {

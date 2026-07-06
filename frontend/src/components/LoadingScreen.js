@@ -39,9 +39,9 @@ export default function LoadingScreen() {
                 <rect width="512" height="512" fill="#ffffff" rx="4"/>
                 <defs>
                   <linearGradient id="loadGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#d4bca0"/>
-                    <stop offset="50%" stop-color="#c4a882"/>
-                    <stop offset="100%" stop-color="#b49876"/>
+                    <stop offset="0%" stopColor="#d4bca0"/>
+                    <stop offset="50%" stopColor="#c4a882"/>
+                    <stop offset="100%" stopColor="#b49876"/>
                   </linearGradient>
                 </defs>
                 <path d="M 48 230 L 256 40 L 464 230" stroke="url(#loadGold)" strokeWidth="14" fill="none" strokeLinecap="round" strokeLinejoin="round"/>

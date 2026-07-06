@@ -1,0 +1,12 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install all dependencies (including devDeps for nodemon) at build time
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Source code is mounted as a volume in dev
+EXPOSE 5000
+
+CMD ["npm", "run", "dev"]

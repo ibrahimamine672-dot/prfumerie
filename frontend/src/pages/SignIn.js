@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 import './SignIn.css';
-
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://yourdomain.com/api'
-  : 'http://localhost:5001/api';
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -45,16 +44,8 @@ export default function SignIn() {
         throw new Error(data.message || 'Invalid email or password');
       }
 
-      // Store token in localStorage for future use
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify({
-        _id: data._id,
-        name: data.name,
-        email: data.email,
-        role: data.role
-      }));
+      login(data.token, { _id: data._id, name: data.name, email: data.email, role: data.role });
 
-      // Navigate to home
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -136,11 +127,11 @@ export default function SignIn() {
               Don't have an account?{' '}
               <Link to="/signup" className="link-accent">Create one</Link>
             </p>
-            <p className="signup-privacy" style={{fontSize: '0.65rem', color: 'var(--color-text-dim)', lineHeight: 1.6}}>
+            <p className="signup-privacy">
               By signing in, you agree to our{' '}
-              <button className="link-accent" style={{fontSize: '0.65rem'}} onClick={() => {}}>Privacy Policy</button>
+              <button className="link-accent" onClick={() => {}}>Privacy Policy</button>
               {' '}and{' '}
-              <button className="link-accent" style={{fontSize: '0.65rem'}} onClick={() => {}}>Terms of Service</button>.
+              <button className="link-accent" onClick={() => {}}>Terms of Service</button>.
             </p>
           </div>
         </div>

@@ -1,7 +1,9 @@
 .admin-orders-page {
   min-height: calc(100vh - 80px);
   padding: 120px 0 80px;
-  background: var(--color-bg-secondary);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.9), rgba(250, 247, 242, 0) 330px),
+    var(--color-bg-secondary);
 }
 
 .admin-header {
@@ -18,7 +20,7 @@
   font-size: 2rem;
   font-weight: 700;
   color: var(--color-text);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .admin-stats {
@@ -34,7 +36,7 @@
   padding: 8px 16px;
   background: var(--color-white);
   border: 1px solid var(--color-glass-border);
-  border-radius: 20px;
+  border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-text-muted);
@@ -90,10 +92,10 @@
 /* Table */
 .orders-table-wrapper {
   background: var(--color-white);
-  border: 1px solid var(--color-glass-border);
-  border-radius: 8px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 18px 44px rgba(17, 17, 17, 0.08);
 }
 
 .orders-table {
@@ -109,7 +111,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-text-muted);
-  background: var(--color-bg-secondary);
+  background: #fffdf8;
   border-bottom: 1px solid var(--color-glass-border);
   white-space: nowrap;
 }
@@ -127,7 +129,7 @@
 }
 
 .orders-table tr:hover td {
-  background: rgba(196, 168, 130, 0.03);
+  background: rgba(201, 162, 77, 0.045);
 }
 
 .cell-name {
@@ -147,7 +149,7 @@
 .cell-total {
   font-family: var(--font-heading);
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--color-text);
   white-space: nowrap;
 }
 
@@ -163,7 +165,7 @@
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: 999px;
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -209,13 +211,13 @@
 }
 
 .status-btn {
-  padding: 4px 10px;
+  padding: 6px 10px;
   font-size: 0.55rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   border: 1px solid var(--color-glass-border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--color-bg-secondary);
   color: var(--color-text-muted);
   cursor: pointer;
@@ -245,7 +247,8 @@
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(10, 10, 8, 0.48);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -254,12 +257,12 @@
 
 .order-modal {
   background: var(--color-white);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   width: 100%;
   max-width: 600px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 28px 76px rgba(0, 0, 0, 0.2);
 }
 
 .order-modal-header {
@@ -285,7 +288,7 @@
   color: var(--color-text-dim);
   transition: all 0.2s ease;
   padding: 8px;
-  border-radius: 50%;
+  border-radius: 999px;
   cursor: pointer;
   background: none;
   border: none;
@@ -364,7 +367,7 @@
 .modal-item-total {
   font-family: var(--font-heading);
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--color-text);
 }
 
 .modal-total-row {
@@ -372,7 +375,7 @@
   justify-content: space-between;
   padding: 12px 0 0;
   margin-top: 8px;
-  border-top: 2px solid var(--color-text);
+  border-top: 2px solid var(--color-gold);
   font-family: var(--font-heading);
   font-size: 1rem;
   font-weight: 700;

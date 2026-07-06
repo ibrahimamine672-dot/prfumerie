@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies at build time (not on every container start)
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Source code is mounted as a volume in dev
+# CRA dev server on port 3000
+EXPOSE 3000
+
+ENV BROWSER=none
+ENV PORT=3000
+
+CMD ["npm", "start"]

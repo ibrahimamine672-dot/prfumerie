@@ -2,7 +2,9 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: var(--color-white);
+  background:
+    linear-gradient(135deg, rgba(102, 116, 99, 0.1), rgba(169, 99, 82, 0.08)),
+    var(--color-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,14 +51,14 @@
   height: 2px;
   background: var(--color-bg-tertiary);
   overflow: hidden;
-  border-radius: 1px;
+  border-radius: 999px;
 }
 
 .loading-bar-fill {
   height: 100%;
-  background: var(--color-accent);
+  background: linear-gradient(90deg, var(--color-accent), var(--color-gold));
   transition: width 0.3s ease;
-  border-radius: 1px;
+  border-radius: 999px;
 }
 
 .loading-percentage {

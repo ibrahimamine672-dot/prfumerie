@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 import './Checkout.css';
-
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://yourdomain.com/api'
-  : 'http://localhost:5001/api';
 
 export default function Checkout() {
   const { items, updateQuantity, removeItem, clearCart, total, count } = useCart();
+  const { user, updateUser } = useAuth();
+  const freeItemAvailable = user?.freeItemAvailable || false;
   const [discountCode, setDiscountCode] = useState('');
   const [discountApplied, setDiscountApplied] = useState(null);
   const [discountError, setDiscountError] = useState('');
@@ -84,7 +84,7 @@ export default function Checkout() {
       phone: delivery.phone.trim(),
       location: delivery.location.trim(),
       items: items.map(item => ({
-        perfumeId: item.id,
+        perfumeId: item.id || item._id,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
@@ -118,6 +118,10 @@ export default function Checkout() {
       clearCart();
       setOrderDetails(data);
       setOrderPlaced(true);
+      // Update user's loyalty status if free item was applied
+      if (data.freeItemApplied && updateUser) {
+        updateUser({ freeItemAvailable: false });
+      }
     } catch (err) {
       setOrderError(err.message);
     } finally {
@@ -155,7 +159,24 @@ export default function Checkout() {
             >
               Thank you for your purchase, {orderDetails?.name}!<br />
               Your order has been saved and will be shipped to <strong>{orderDetails?.location}</strong>.<br />
-              A confirmation email will be sent to <strong>{orderDetails?.email}</strong>.
+              A confirmation email will be sent to <strong>{orderDetails?.email}</strong>.{orderDetails?.freeItemApplied && (
+                <>
+                  <br /><br />
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 16px',
+                    background: 'rgba(22, 163, 74, 0.12)',
+                    color: '#16a34a',
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    fontSize: '0.9rem'
+                  }}>
+                    🎁 <strong>{orderDetails?.freeItemName}</strong> was FREE — your loyalty reward!
+                  </span>
+                </>
+              )}
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -253,12 +274,11 @@ export default function Checkout() {
             </div>
 
             <h2 className="checkout-items-title" style={{ marginTop: 32 }}>Order Summary</h2>
-            <h2 className="checkout-items-title">Order Summary</h2>
 
             <AnimatePresence mode="popLayout">
               {items.map(item => (
                 <motion.div
-                  key={item.id}
+                  key={item.id || item._id}
                   className="checkout-item"
                   layout
                   initial={{ opacity: 0, x: -20 }}
@@ -269,24 +289,21 @@ export default function Checkout() {
                   <div className="checkout-item-info">
                     <span className="checkout-item-name">{item.name}</span>
                     <span className="checkout-item-meta">{item.size} &middot; ${item.price}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
-                      <div className="quantity-controls" style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 10,
-                        border: '1px solid var(--color-glass-border)', padding: '2px 6px', borderRadius: 3
-                      }}>
+                    <div className="checkout-item-actions">
+                      <div className="checkout-qty-controls">
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--color-text-muted)', padding: '2px 6px', cursor: 'pointer', background: 'none', border: 'none' }}
+                          className="checkout-qty-btn"
+                          onClick={() => updateQuantity(item.id || item._id, item.quantity - 1)}
                         >−</button>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 500, minWidth: 20, textAlign: 'center', color: 'var(--color-text)' }}>{item.quantity}</span>
+                        <span className="checkout-qty-value">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--color-text-muted)', padding: '2px 6px', cursor: 'pointer', background: 'none', border: 'none' }}
+                          className="checkout-qty-btn"
+                          onClick={() => updateQuantity(item.id || item._id, item.quantity + 1)}
                         >+</button>
                       </div>
                       <button
-                        onClick={() => removeItem(item.id)}
-                        style={{ fontSize: '0.6rem', fontWeight: 500, color: 'var(--color-text-dim)', letterSpacing: '0.06em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer' }}
+                        className="checkout-remove-btn"
+                        onClick={() => removeItem(item.id || item._id)}
                       >Remove</button>
                     </div>
                   </div>
@@ -366,6 +383,30 @@ export default function Checkout() {
                 </div>
               )}
             </div>
+
+            {/* Free Item Banner */}
+            {freeItemAvailable && (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(22, 163, 74, 0.12), rgba(34, 197, 94, 0.08))',
+                border: '1px solid rgba(22, 163, 74, 0.3)',
+                borderRadius: 8,
+                padding: '12px 16px',
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10
+              }}>
+                <span style={{ fontSize: '1.2rem' }}>🎁</span>
+                <div>
+                  <p style={{ fontWeight: 600, fontSize: '0.8rem', color: '#16a34a' }}>
+                    Free Item Earned!
+                  </p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                    Your cheapest item will be free on this order.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {orderError && <p className="discount-error">{orderError}</p>}
 

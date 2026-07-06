@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import Logo from './Logo';
 import './Footer.css';
 
 export default function Footer() {
@@ -8,25 +9,7 @@ export default function Footer() {
         <div className="footer-grid">
           <div className="footer-brand">
             <div className="footer-logo-wrap">
-              <svg className="footer-logo-icon" width="32" height="32" viewBox="0 0 512 512">
-                <rect width="512" height="512" fill="#ffffff" rx="4"/>
-                <defs>
-                  <linearGradient id="footGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#d4bca0"/>
-                    <stop offset="50%" stop-color="#c4a882"/>
-                    <stop offset="100%" stop-color="#b49876"/>
-                  </linearGradient>
-                </defs>
-                <path d="M 48 230 L 256 40 L 464 230" stroke="url(#footGold)" strokeWidth="14" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                <line x1="48" y1="230" x2="48" y2="244" stroke="url(#footGold)" strokeWidth="14" strokeLinecap="round"/>
-                <line x1="464" y1="230" x2="464" y2="244" stroke="url(#footGold)" strokeWidth="14" strokeLinecap="round"/>
-                <line x1="48" y1="244" x2="72" y2="244" stroke="url(#footGold)" strokeWidth="14" strokeLinecap="round"/>
-                <line x1="440" y1="244" x2="464" y2="244" stroke="url(#footGold)" strokeWidth="14" strokeLinecap="round"/>
-                <line x1="72" y1="244" x2="72" y2="440" stroke="url(#footGold)" strokeWidth="14" strokeLinecap="round"/>
-                <line x1="440" y1="244" x2="440" y2="440" stroke="url(#footGold)" strokeWidth="14" strokeLinecap="round"/>
-                <line x1="72" y1="440" x2="440" y2="440" stroke="url(#footGold)" strokeWidth="14" strokeLinecap="round"/>
-                <path d="M 218 440 L 218 346 Q 256 306 294 346 L 294 440" stroke="url(#footGold)" strokeWidth="14" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Logo size={32} />
               <div>
                 <h3 className="footer-logo">MAISON DORÉE</h3>
                 <p className="footer-tagline">PARIS</p>
@@ -90,7 +73,7 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; 2024 Maison Dorée. All rights reserved.</p>
+          <p>&copy; 2025 Maison Dorée. All rights reserved.</p>
           <div className="footer-legal">
             <button className="footer-legal-link" onClick={() => {}}>Privacy Policy</button>
             <button className="footer-legal-link" onClick={() => {}}>Terms of Service</button>

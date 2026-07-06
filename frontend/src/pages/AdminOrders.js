@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 import './AdminOrders.css';
-
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://yourdomain.com/api'
-  : 'http://localhost:5001/api';
 
 const STATUS_FLOW = {
   pending: ['confirmed', 'cancelled'],
@@ -22,32 +20,23 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updating, setUpdating] = useState(null);
 
-  const user = (() => {
-    try {
-      const stored = localStorage.getItem('user');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  })();
-
-  const isAdmin = user?.role === 'admin';
+  const { user, isAdmin } = useAuth();
   const token = localStorage.getItem('token');
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/orders`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Failed to fetch orders');
       const data = await res.json();
-      setOrders(data);
+      setOrders(data.orders || data);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     if (isAdmin && token) {
@@ -55,8 +44,7 @@ export default function AdminOrders() {
     } else {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin, token]);
+  }, [isAdmin, token, fetchOrders]);
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     setUpdating(orderId);

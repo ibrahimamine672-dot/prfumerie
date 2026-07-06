@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import Cart from './Cart';
+import Logo from './Logo';
+import DarkModeToggle from './DarkModeToggle';
 import './Navbar.css';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { count, isOpen, setIsOpen } = useCart();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -31,25 +35,7 @@ export default function Navbar() {
       >
         <div className="navbar-inner">
           <Link to="/" className="navbar-brand">
-            <svg className="navbar-logo" width="28" height="28" viewBox="0 0 512 512">
-              <rect width="512" height="512" fill="#ffffff" rx="4"/>
-              <defs>
-                <linearGradient id="navGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#d4bca0"/>
-                  <stop offset="50%" stop-color="#c4a882"/>
-                  <stop offset="100%" stop-color="#b49876"/>
-                </linearGradient>
-              </defs>
-              <path d="M 48 230 L 256 40 L 464 230" stroke="url(#navGold)" strokeWidth="14" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-              <line x1="48" y1="230" x2="48" y2="244" stroke="url(#navGold)" strokeWidth="14" strokeLinecap="round"/>
-              <line x1="464" y1="230" x2="464" y2="244" stroke="url(#navGold)" strokeWidth="14" strokeLinecap="round"/>
-              <line x1="48" y1="244" x2="72" y2="244" stroke="url(#navGold)" strokeWidth="14" strokeLinecap="round"/>
-              <line x1="440" y1="244" x2="464" y2="244" stroke="url(#navGold)" strokeWidth="14" strokeLinecap="round"/>
-              <line x1="72" y1="244" x2="72" y2="440" stroke="url(#navGold)" strokeWidth="14" strokeLinecap="round"/>
-              <line x1="440" y1="244" x2="440" y2="440" stroke="url(#navGold)" strokeWidth="14" strokeLinecap="round"/>
-              <line x1="72" y1="440" x2="440" y2="440" stroke="url(#navGold)" strokeWidth="14" strokeLinecap="round"/>
-              <path d="M 218 440 L 218 346 Q 256 306 294 346 L 294 440" stroke="url(#navGold)" strokeWidth="14" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <Logo size={28} link={false} />
             <span className="navbar-brand-text">
               <span className="brand-name">MAISON DORÉE</span>
               <span className="brand-sub">PARIS</span>
@@ -82,12 +68,35 @@ export default function Navbar() {
               </svg>
               S'inscrire −15%
             </Link>
-            <Link to="/admin/orders" className={location.pathname === '/admin/orders' ? 'active' : ''}>
-              Admin
-            </Link>
+            {user?.role === 'admin' && (
+              <Link to="/admin/orders" className={`admin-link ${location.pathname === '/admin/orders' ? 'active' : ''}`}>
+                Admin
+              </Link>
+            )}
           </div>
 
           <div className="navbar-actions">
+            <DarkModeToggle />
+
+            {user && (
+              <Link to="/profile" className="navbar-user-btn" aria-label="Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </Link>
+            )}
+
+            {user && (
+              <button className="navbar-logout-btn" onClick={logout} aria-label="Sign out">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </button>
+            )}
+
             <button
               className="cart-button"
               onClick={() => setIsOpen(true)}
@@ -139,7 +148,7 @@ export default function Navbar() {
             <Link to="/products?gender=Women">Women</Link>
             <Link to="/signin">Sign In</Link>
             <Link to="/signup" className="signup-link">S'inscrire −15%</Link>
-            <Link to="/admin/orders">Admin</Link>
+            {user?.role === 'admin' && <Link to="/admin/orders">Admin</Link>}
           </motion.div>
         )}
       </AnimatePresence>

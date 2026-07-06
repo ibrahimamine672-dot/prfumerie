@@ -4,9 +4,8 @@ const { createOrder, getOrders, getOrderById, getMyOrders, updateOrderStatus } =
 const { protect, admin } = require('../middleware/auth');
 
 // Anyone can create an order (with or without auth)
-// protect is optional - the controller handles user reference gracefully
+// Uses optional auth middleware — tries to attach user if token provided
 router.post('/', (req, res, next) => {
-  // Extract user if token provided, but don't block if not
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const jwt = require('jsonwebtoken');
