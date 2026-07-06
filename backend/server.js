@@ -41,13 +41,33 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/', authLimiter);
 
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Parfumerie API is running',
+    status: 'ok'
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'parfumerie-backend',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.use('/api', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use('/api/perfumes', require('./routes/perfumes'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/orders', require('./routes/orders'));
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
 
 app.use(errorHandler);
 
@@ -61,7 +81,10 @@ const startServer = async () => {
 };
 
 if (require.main === module) {
-  startServer();
+  startServer().catch((error) => {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
+  });
 }
 
 module.exports = app;
