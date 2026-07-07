@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../config';
+import API_URL, { parseJSON } from '../config';
 import './SignIn.css';
 
 export default function SignIn() {
@@ -38,7 +38,7 @@ export default function SignIn() {
         body: JSON.stringify(formData)
       });
 
-      const data = await res.json();
+      const data = await parseJSON(res);
 
       if (!res.ok) {
         throw new Error(data.message || 'Invalid email or password');

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../config';
+import API_URL, { parseJSON } from '../config';
 
 export default function Profile() {
   const { user, logout, updateUser } = useAuth();
@@ -23,7 +23,7 @@ export default function Profile() {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
-          const data = await res.json();
+          const data = await parseJSON(res);
           setOrders(data.orders || data);
           if (data.completedOrders !== undefined) {
             setLoyalty({

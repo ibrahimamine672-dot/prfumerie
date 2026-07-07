@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../config';
+import API_URL, { parseJSON } from '../config';
 import './AdminOrders.css';
 
 const STATUS_FLOW = {
@@ -29,7 +29,7 @@ export default function AdminOrders() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Failed to fetch orders');
-      const data = await res.json();
+      const data = await parseJSON(res);
       setOrders(data.orders || data);
     } catch (err) {
       setError(err.message);
@@ -58,7 +58,7 @@ export default function AdminOrders() {
         body: JSON.stringify({ status: newStatus })
       });
       if (!res.ok) throw new Error('Failed to update status');
-      const updatedOrder = await res.json();
+      const updatedOrder = await parseJSON(res);
       setOrders(prev => prev.map(o => o._id === orderId ? updatedOrder : o));
       if (selectedOrder?._id === orderId) {
         setSelectedOrder(updatedOrder);

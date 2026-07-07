@@ -10,6 +10,21 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+// Request timeout — prevents hanging serverless functions on Vercel
+const REQUEST_TIMEOUT_MS = parseInt(process.env.REQUEST_TIMEOUT_MS || '9000', 10);
+app.use((req, res, next) => {
+  // Only apply timeout to /api/ routes (not needed for static assets)
+  if (!req.path.startsWith('/api/') && req.path !== '/api') {
+    return next();
+  }
+  res.setTimeout(REQUEST_TIMEOUT_MS, () => {
+    res.status(504).json({
+      message: 'Request timed out. Please try again.'
+    });
+  });
+  next();
+});
+
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: false
@@ -20,7 +35,7 @@ app.use(cors({
     : ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true
 }));
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(mongoSanitize());
 app.use(morgan('dev'));
 
@@ -70,6 +85,11 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/orders', require('./routes/orders'));
 
 app.use(errorHandler);
+
+// Catch-all 404 — ensure unmatched /api/* routes always return JSON
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
 const PORT = process.env.PORT || 5002;
 

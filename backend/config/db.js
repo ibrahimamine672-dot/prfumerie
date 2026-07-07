@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 let connectionPromise = null;
 
+const CONNECTION_TIMEOUT_MS = 5000;
+
 const connectDB = async () => {
   if (mongoose.connection.readyState === 1) {
     return mongoose.connection;
@@ -12,8 +14,10 @@ const connectDB = async () => {
   }
 
   if (!connectionPromise) {
-    connectionPromise = mongoose.connect(process.env.MONGODB_URI)
-      .then((conn) => {
+    connectionPromise = mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: CONNECTION_TIMEOUT_MS,
+      connectTimeoutMS: CONNECTION_TIMEOUT_MS
+    }).then((conn) => {
         console.log(`MongoDB Connected: ${conn.connection.host}`);
         return conn.connection;
       })

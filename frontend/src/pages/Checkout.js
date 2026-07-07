@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../config';
+import API_URL, { parseJSON } from '../config';
 import './Checkout.css';
 
 export default function Checkout() {
@@ -109,7 +109,7 @@ export default function Checkout() {
         body: JSON.stringify(orderData)
       });
 
-      const data = await res.json();
+      const data = await parseJSON(res);
 
       if (!res.ok) {
         throw new Error(data.message || 'Failed to place order');

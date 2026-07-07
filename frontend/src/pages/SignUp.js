@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import API_URL from '../config';
+import API_URL, { parseJSON } from '../config';
 import './SignUp.css';
 
 export default function SignUp() {
@@ -41,7 +41,7 @@ export default function SignUp() {
         body: JSON.stringify(formData)
       });
 
-      const data = await res.json();
+      const data = await parseJSON(res);
 
       if (!res.ok) {
         throw new Error(data.message || 'Registration failed');
