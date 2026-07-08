@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const { xssSanitize } = require('./middleware/validation');
+const { getStore } = require('./lib/kv-store');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -117,12 +118,16 @@ const isDev = process.env.NODE_ENV !== 'production';
 // Trust the Vercel / proxy headers so rate limiter sees real client IPs
 app.set('trust proxy', 1);
 
+// Distributed store (shared across Vercel serverless instances) or in-memory fallback
+const kvStore = getStore();
+
 // Global rate limiter — relaxed in development, strict in production
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDev ? 10000 : 100,
   standardHeaders: true,
   legacyHeaders: false,
+  store: kvStore,
   message: 'Too many requests, please try again later.'
 });
 app.use('/api/', limiter);
@@ -133,6 +138,7 @@ const authLimiter = rateLimit({
   max: isDev ? 1000 : 10,
   standardHeaders: true,
   legacyHeaders: false,
+  store: kvStore,
   message: 'Too many auth attempts, please try again later.'
 });
 app.use('/api/auth/', authLimiter);
