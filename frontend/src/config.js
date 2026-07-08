@@ -1,3 +1,10 @@
+// Detect if we're running in a production environment
+const isProductionHostname = () => {
+  if (typeof window === 'undefined') return false;
+  const hostname = window.location.hostname;
+  return hostname !== 'localhost' && hostname !== '127.0.0.1' && hostname !== '0.0.0.0';
+};
+
 const viteEnv = typeof import.meta !== 'undefined' ? import.meta.env : {};
 const nodeEnv = typeof process !== 'undefined' && process.env ? process.env : {};
 
@@ -11,8 +18,8 @@ const configuredApiUrl = viteEnv?.VITE_API_URL || nodeEnv.REACT_APP_API_URL;
 const API_URL = configuredApiUrl
   // Vite / CRA / custom env override. Accepts either the backend base URL or a URL ending in /api.
   ? normalizeApiUrl(configuredApiUrl)
-  // Production: relative path (nginx proxy handles /api/ -> backend)
-  : nodeEnv.NODE_ENV === 'production'
+  // Production: relative path (Vercel rewrites handle /api/ -> backend)
+  : nodeEnv.NODE_ENV === 'production' || isProductionHostname()
   ? '/api'
   // Local dev: direct backend access
   : 'http://localhost:5002/api';
