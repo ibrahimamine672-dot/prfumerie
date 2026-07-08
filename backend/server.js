@@ -29,11 +29,15 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: false
 }));
-const allowedOrigins = process.env.CLIENT_URL
+// Always allow localhost origins in addition to any configured CLIENT_URL
+const prodOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map(s => s.trim())
-  : process.env.NODE_ENV === 'production'
-    ? ['https://prfumerie-79sf.vercel.app']
-    : ['http://localhost:3000', 'http://localhost:3001'];
+  : ['https://prfumerie-79sf.vercel.app'];
+
+// Local development origins that are always permitted
+const devOrigins = ['http://localhost:3000', 'http://localhost:3001'];
+
+const allowedOrigins = [...new Set([...prodOrigins, ...devOrigins])];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -95,6 +99,7 @@ app.use('/api', async (req, res, next) => {
 app.use('/api/perfumes', require('./routes/perfumes'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/orders', require('./routes/orders'));
+app.use('/api/admin', require('./routes/admin'));
 
 app.use(errorHandler);
 

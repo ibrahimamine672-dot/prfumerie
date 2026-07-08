@@ -213,3 +213,101 @@ exports.updateOrderStatus = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+/**
+ * Export all orders to an Excel file and send it as a downloadable response.
+ * Protected by auth + admin middleware — only admin users can access this.
+ */
+exports.exportOrdersToExcel = async (req, res) => {
+  try {
+    const ExcelJS = require('exceljs');
+
+    // Fetch all orders, sorted by newest first
+    const orders = await Order.find().sort({ createdAt: -1 }).lean();
+
+    // Create a new workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Commandes');
+
+    // Define columns
+    worksheet.columns = [
+      { header: 'Order ID', key: 'id', width: 28 },
+      { header: 'Customer Name', key: 'name', width: 22 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'Phone', key: 'phone', width: 18 },
+      { header: 'Product', key: 'product', width: 40 },
+      { header: 'Quantity', key: 'quantity', width: 10 },
+      { header: 'Total Price', key: 'total', width: 14 },
+      { header: 'Status', key: 'status', width: 14 },
+      { header: 'Date', key: 'date', width: 20 },
+    ];
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1A1A2E' },
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 28;
+
+    // Add data rows
+    orders.forEach((order) => {
+      const productNames = order.items.map((item) => item.name).join(', ');
+      const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+      const dateFormatted = order.createdAt
+        ? new Date(order.createdAt).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : '';
+
+      worksheet.addRow({
+        id: order._id.toString(),
+        name: order.name,
+        email: order.email,
+        phone: order.phone || '',
+        product: productNames,
+        quantity: totalQuantity,
+        total: order.total ? order.total.toFixed(2) + ' €' : '0.00 €',
+        status: order.status,
+        date: dateFormatted,
+      });
+    });
+
+    // Style data rows with alternating colors
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) {
+        row.alignment = { vertical: 'middle', horizontal: 'center' };
+        row.height = 22;
+        if (rowNumber % 2 === 0) {
+          row.eachCell((cell) => {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFF5F5F5' },
+            };
+          });
+        }
+      }
+    });
+
+    // Set response headers and send the workbook
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename=commandes.xlsx');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Error exporting orders to Excel:', error);
+    res.status(500).json({ message: 'Failed to export orders: ' + error.message });
+  }
+};
