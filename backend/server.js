@@ -30,12 +30,14 @@ app.use(helmet({
   contentSecurityPolicy: false
 }));
 // Always allow localhost origins in addition to any configured CLIENT_URL
-const prodOrigins = process.env.CLIENT_URL
+const defaultProdOrigins = ['https://prfumerie.vercel.app', 'https://prfumerie-79sf.vercel.app'];
+const configuredProdOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map(s => s.trim())
-  : ['https://prfumerie-79sf.vercel.app'];
+  : [];
+const prodOrigins = [...configuredProdOrigins, ...defaultProdOrigins];
 
 // Local development origins that are always permitted
-const devOrigins = ['http://localhost:3000', 'http://localhost:3001'];
+const devOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
 
 const allowedOrigins = [...new Set([...prodOrigins, ...devOrigins])];
 

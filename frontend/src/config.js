@@ -1,8 +1,18 @@
-const API_URL = process.env.REACT_APP_API_URL
-  // Docker / custom env override
-  ? process.env.REACT_APP_API_URL
+const viteEnv = typeof import.meta !== 'undefined' ? import.meta.env : {};
+const nodeEnv = typeof process !== 'undefined' && process.env ? process.env : {};
+
+const normalizeApiUrl = (value) => {
+  const trimmed = value.replace(/\/$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const configuredApiUrl = viteEnv?.VITE_API_URL || nodeEnv.REACT_APP_API_URL;
+
+const API_URL = configuredApiUrl
+  // Vite / CRA / custom env override. Accepts either the backend base URL or a URL ending in /api.
+  ? normalizeApiUrl(configuredApiUrl)
   // Production: relative path (nginx proxy handles /api/ -> backend)
-  : process.env.NODE_ENV === 'production'
+  : nodeEnv.NODE_ENV === 'production'
   ? '/api'
   // Local dev: direct backend access
   : 'http://localhost:5002/api';

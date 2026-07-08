@@ -23,6 +23,45 @@ export default function AdminOrders() {
   const { user, isAdmin } = useAuth();
   const token = localStorage.getItem('token');
 
+  const downloadOrdersExcel = async () => {
+    try {
+      const adminToken = localStorage.getItem('token');
+
+      if (!adminToken) {
+        alert('Admin token not found. Please login again.');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/admin/orders/export`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${adminToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await parseJSON(response).catch(() => null);
+        alert(errorData?.message || 'Failed to download Excel file');
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'commandes.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Excel download error:', error);
+      alert('Error downloading Excel file');
+    }
+  };
+
   const fetchOrders = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/orders`, {
@@ -125,39 +164,14 @@ export default function AdminOrders() {
           </div>
           <button
             className="btn-primary"
-            onClick={() => {
-              const token = localStorage.getItem('token');
-              if (token) {
-                fetch(`${API_URL}/admin/orders/export`, {
-                  headers: { 'Authorization': `Bearer ${token}` }
-                })
-                  .then(res => {
-                    if (!res.ok) throw new Error('Export failed');
-                    return res.blob();
-                  })
-                  .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'commandes.xlsx';
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
-                  })
-                  .catch(err => {
-                    console.error('Export error:', err);
-                    alert('Failed to export orders. Please try again.');
-                  });
-              }
-            }}
+            onClick={downloadOrdersExcel}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 8 }}>
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            Télécharger les commandes Excel
+            Télécharger Excel
           </button>
         </div>
 
