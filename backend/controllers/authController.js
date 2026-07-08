@@ -15,7 +15,7 @@ const generateDiscountCode = () => {
   return code;
 };
 
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => {
   try {
     const { name, email, password, phone, location } = req.body;
 
@@ -46,11 +46,12 @@ exports.register = async (req, res) => {
       token: generateToken(user._id)
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400);
+    next(error);
   }
 };
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -69,7 +70,8 @@ exports.login = async (req, res) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400);
+    next(error);
   }
 };
 

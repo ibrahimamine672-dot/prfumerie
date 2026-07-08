@@ -2,7 +2,7 @@ const Order = require('../models/Order');
 const Perfume = require('../models/Perfume');
 const mongoose = require('mongoose');
 
-exports.createOrder = async (req, res) => {
+exports.createOrder = async (req, res, next) => {
   try {
     let { name, email, phone, location, items, subtotal, shipping, discountCode, discountPercent, discountAmount, total } = req.body;
 
@@ -134,11 +134,12 @@ exports.createOrder = async (req, res) => {
       freeItemName
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400);
+    next(error);
   }
 };
 
-exports.getOrders = async (req, res) => {
+exports.getOrders = async (req, res, next) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
@@ -156,11 +157,12 @@ exports.getOrders = async (req, res) => {
       pages: Math.ceil(total / limit)
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500);
+    next(error);
   }
 };
 
-exports.getOrderById = async (req, res) => {
+exports.getOrderById = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) {
@@ -168,11 +170,12 @@ exports.getOrderById = async (req, res) => {
     }
     res.json(order);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500);
+    next(error);
   }
 };
 
-exports.getMyOrders = async (req, res) => {
+exports.getMyOrders = async (req, res, next) => {
   try {
     const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
     const completedCount = await Order.countDocuments({
@@ -185,11 +188,12 @@ exports.getMyOrders = async (req, res) => {
       freeItemAvailable: req.user.freeItemAvailable
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500);
+    next(error);
   }
 };
 
-exports.updateOrderStatus = async (req, res) => {
+exports.updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
     const validStatuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
@@ -210,7 +214,8 @@ exports.updateOrderStatus = async (req, res) => {
 
     res.json(order);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400);
+    next(error);
   }
 };
 
@@ -218,7 +223,7 @@ exports.updateOrderStatus = async (req, res) => {
  * Export all orders to an Excel file and send it as a downloadable response.
  * Protected by auth + admin middleware — only admin users can access this.
  */
-exports.exportOrdersToExcel = async (req, res) => {
+exports.exportOrdersToExcel = async (req, res, next) => {
   try {
     const ExcelJS = require('exceljs');
 
@@ -308,6 +313,7 @@ exports.exportOrdersToExcel = async (req, res) => {
     res.end();
   } catch (error) {
     console.error('Error exporting orders to Excel:', error);
-    res.status(500).json({ message: 'Failed to export orders: ' + error.message });
+    res.status(500);
+    next(error);
   }
 };

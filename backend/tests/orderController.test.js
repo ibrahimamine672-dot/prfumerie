@@ -277,15 +277,17 @@ describe('exportOrdersToExcel', () => {
 
     const req = {};
     const res = mockRes();
+    const next = jest.fn();
 
-    await exportOrdersToExcel(req, res);
+    await exportOrdersToExcel(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(
+    expect(next).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: expect.stringContaining('Database connection failed'),
+        message: 'Database connection failed',
       })
     );
+    expect(res.json).not.toHaveBeenCalled();
     expect(res.end).not.toHaveBeenCalled();
   });
 

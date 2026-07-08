@@ -1,6 +1,6 @@
 const Perfume = require('../models/Perfume');
 
-exports.getPerfumes = async (req, res) => {
+exports.getPerfumes = async (req, res, next) => {
   try {
     const { category, gender, minPrice, maxPrice, search, bestseller, sort, page = 1, limit = 12 } = req.query;
 
@@ -38,11 +38,12 @@ exports.getPerfumes = async (req, res) => {
       pages: Math.ceil(total / Number(limit))
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500);
+    next(error);
   }
 };
 
-exports.getPerfumeById = async (req, res) => {
+exports.getPerfumeById = async (req, res, next) => {
   try {
     const perfume = await Perfume.findById(req.params.id);
     if (!perfume) {
@@ -50,13 +51,14 @@ exports.getPerfumeById = async (req, res) => {
     }
     res.json(perfume);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500);
+    next(error);
   }
 };
 
 const allowedFields = ['name', 'brand', 'price', 'category', 'gender', 'image', 'description', 'notes', 'size', 'bestseller', 'stock', 'active'];
 
-exports.createPerfume = async (req, res) => {
+exports.createPerfume = async (req, res, next) => {
   try {
     const data = {};
     for (const field of allowedFields) {
@@ -67,11 +69,12 @@ exports.createPerfume = async (req, res) => {
     const perfume = await Perfume.create(data);
     res.status(201).json(perfume);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400);
+    next(error);
   }
 };
 
-exports.updatePerfume = async (req, res) => {
+exports.updatePerfume = async (req, res, next) => {
   try {
     const data = {};
     for (const field of allowedFields) {
@@ -88,11 +91,12 @@ exports.updatePerfume = async (req, res) => {
     }
     res.json(perfume);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400);
+    next(error);
   }
 };
 
-exports.deletePerfume = async (req, res) => {
+exports.deletePerfume = async (req, res, next) => {
   try {
     const perfume = await Perfume.findByIdAndDelete(req.params.id);
     if (!perfume) {
@@ -100,15 +104,17 @@ exports.deletePerfume = async (req, res) => {
     }
     res.json({ message: 'Perfume removed' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500);
+    next(error);
   }
 };
 
-exports.getBestsellers = async (req, res) => {
+exports.getBestsellers = async (req, res, next) => {
   try {
     const perfumes = await Perfume.find({ bestseller: true, active: true }).limit(6);
     res.json(perfumes);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500);
+    next(error);
   }
 };
