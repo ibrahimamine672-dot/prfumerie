@@ -9,12 +9,15 @@ const connectDB = async () => {
     return mongoose.connection;
   }
 
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI is not defined');
+  // Support both MONGODB_URI and MONGODB_URL environment variable names
+  const uri = process.env.MONGODB_URI || process.env.MONGODB_URL;
+
+  if (!uri) {
+    throw new Error('Database connection string is not configured. Set MONGODB_URI or MONGODB_URL.');
   }
 
   if (!connectionPromise) {
-    connectionPromise = mongoose.connect(process.env.MONGODB_URI, {
+    connectionPromise = mongoose.connect(uri, {
       serverSelectionTimeoutMS: CONNECTION_TIMEOUT_MS,
       connectTimeoutMS: CONNECTION_TIMEOUT_MS
     }).then((conn) => {

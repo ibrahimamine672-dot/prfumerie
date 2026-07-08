@@ -144,17 +144,18 @@ const authLimiter = rateLimit({
 app.use('/api/auth/', authLimiter);
 
 app.get('/', (req, res) => {
-  res.json({
-    message: 'Parfumerie API is running',
-    status: 'ok'
+  res.status(200).json({
+    status: 'ok',
+    message: 'Prfumerie API is running'
   });
 });
 
+// Safe health check — returns minimal info, never exposes secrets or internal paths
+// Does not require a database connection — returns 200 even if DB is unavailable
 app.get('/api/health', (req, res) => {
-  res.json({
+  res.status(200).json({
     status: 'ok',
-    service: 'parfumerie-backend',
-    timestamp: new Date().toISOString()
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -172,12 +173,19 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/admin', require('./routes/admin'));
 
-app.use(errorHandler);
-
-// Catch-all 404 — ensure unmatched /api/* routes always return JSON
+// Catch-all 404 for unmatched /api/* routes (before error handler — Express skips
+// regular middleware when next(err) is called, so 404 handlers must come first)
 app.use('/api/*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
+
+// Catch-all 404 for all other unmatched routes (non-API)
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+// Global error handler — must be the LAST middleware in Express
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5002;
 

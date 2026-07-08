@@ -1,12 +1,24 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const { createOrder, getOrders, getOrderById, getMyOrders, updateOrderStatus } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/auth');
 const { createOrderValidation, updateOrderStatusValidation, getOrderByIdValidation } = require('../middleware/validation');
+const { getStore } = require('../lib/kv-store');
 
-// Anyone can create an order (with or without auth)
+// Rate limiter for order creation — prevents abuse
+const orderLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 20 : 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: getStore(),
+  message: 'Too many order attempts, please try again later.'
+});
+
+// Anyone can create an order (with or without auth) — rate limited
 // Uses optional auth middleware — tries to attach user if token provided
-router.post('/', createOrderValidation, (req, res, next) => {
+router.post('/', orderLimiter, createOrderValidation, (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const jwt = require('jsonwebtoken');

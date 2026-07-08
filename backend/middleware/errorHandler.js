@@ -31,16 +31,20 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // ---- Generic error ----
-  const response = {
-    message,
-  };
 
-  // Only include stack trace in non-production (never leak to clients in production)
-  if (process.env.NODE_ENV !== 'production') {
-    response.stack = err.stack;
+  // Always log the error server-side so we can debug production issues
+  console.error(err);
+
+  // Never leak internal error details in production — always return a safe generic message
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(statusCode).json({ message: 'Server error' });
   }
 
-  res.status(statusCode).json(response);
+  // In development, send the actual error message and stack trace for debugging
+  res.status(statusCode).json({
+    message,
+    stack: err.stack,
+  });
 };
 
 module.exports = errorHandler;
