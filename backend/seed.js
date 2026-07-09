@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Perfume = require('./models/Perfume');
-const User = require('./models/User');
+const { provisionAdminAccount } = require('./config/admin');
 
 const perfumes = [
   {
@@ -159,28 +159,17 @@ const perfumes = [
   }
 ];
 
-const adminUser = {
-  name: "Admin",
-  email: "admin@parfum.com",
-  phone: "+33123456789",
-  location: "Paris, France",
-  password: "Admin@123",
-  role: "admin"
-};
-
 async function seed() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB Connected');
 
     await Perfume.deleteMany({});
-    await User.deleteMany({});
 
     const createdPerfumes = await Perfume.insertMany(perfumes);
     console.log(`${createdPerfumes.length} perfumes seeded`);
 
-    await User.create(adminUser);
-    console.log(`Admin user created (${adminUser.email} / ${adminUser.password})`);
+    await provisionAdminAccount();
 
     await mongoose.disconnect();
     console.log('Seeding complete');

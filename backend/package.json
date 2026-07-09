@@ -8,6 +8,7 @@
     "dev": "nodemon server.js",
     "seed": "node seed.js",
     "seed:orders": "node seed-orders.js",
+    "admin:provision": "node scripts/provision-admin.js",
     "test": "jest"
   },
   "dependencies": {

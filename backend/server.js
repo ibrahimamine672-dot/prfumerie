@@ -8,6 +8,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const { xssSanitize } = require('./middleware/validation');
 const { getStore } = require('./lib/kv-store');
 const connectDB = require('./config/db');
+const { ensureAdminAccount } = require('./config/admin');
 const errorHandler = require('./middleware/errorHandler');
 
 // --------------------------------------------------------------------------
@@ -162,6 +163,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api', async (req, res, next) => {
   try {
     await connectDB();
+    await ensureAdminAccount();
     next();
   } catch (error) {
     next(error);
@@ -191,6 +193,7 @@ const PORT = process.env.PORT || 5002;
 
 const startServer = async () => {
   await connectDB();
+  await ensureAdminAccount();
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

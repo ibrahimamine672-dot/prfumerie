@@ -13,6 +13,11 @@ const jwt = require('jsonwebtoken');
 
 // Set env vars before requiring the app
 process.env.JWT_SECRET = 'test-jwt-secret-key-not-for-production';
+process.env.ADMIN_EMAIL = 'new-admin@example.com';
+process.env.ADMIN_PASSWORD = 'adminpass1937';
+process.env.ADMIN_NAME = 'Test Admin';
+process.env.ADMIN_PHONE = '+33123456789';
+process.env.ADMIN_LOCATION = 'Paris, France';
 
 const Order = require('../models/Order');
 const User = require('../models/User');
@@ -101,6 +106,56 @@ afterAll(async () => {
 });
 
 // ── Tests ──────────────────────────────────────────────────────────────────
+
+describe('Admin authentication and order access', () => {
+  test('should migrate the legacy admin and login with the configured credentials', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: process.env.ADMIN_EMAIL,
+        password: process.env.ADMIN_PASSWORD,
+      })
+      .expect(200);
+
+    expect(res.body.role).toBe('admin');
+    expect(res.body.token).toEqual(expect.any(String));
+    adminToken = res.body.token;
+
+    const migratedAdmin = await User.findOne({ email: process.env.ADMIN_EMAIL })
+      .select('+password');
+
+    expect(migratedAdmin).not.toBeNull();
+    expect(migratedAdmin.password).not.toBe(process.env.ADMIN_PASSWORD);
+    expect(await migratedAdmin.comparePassword(process.env.ADMIN_PASSWORD)).toBe(true);
+    expect(await User.findOne({ email: 'admin@parfum.com' })).toBeNull();
+  });
+
+  test('should allow an admin to list orders', async () => {
+    const res = await request(app)
+      .get('/api/admin/orders')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
+    expect(res.body.orders).toHaveLength(testOrders.length);
+  });
+
+  test('should reject a regular user from the admin orders page', async () => {
+    const user = await User.create({
+      name: 'Regular User',
+      email: 'regular@example.com',
+      phone: '+33600000001',
+      location: 'Lyon, France',
+      password: 'regularpass',
+      role: 'user',
+    });
+    const userToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+
+    await request(app)
+      .get('/api/admin/orders')
+      .set('Authorization', `Bearer ${userToken}`)
+      .expect(403);
+  });
+});
 
 describe('GET /api/admin/orders/export', () => {
   test('should return 401 when no auth token is provided', async () => {
@@ -193,6 +248,11 @@ describe('GET /api/admin/orders/export', () => {
     expectedHeaders.forEach((header, i) => {
       expect(headerRow.getCell(i + 1).value).toBe(header);
     });
+
+    const normalizedHeaders = expectedHeaders.map((header) => header.toLowerCase());
+    expect(normalizedHeaders).not.toEqual(
+      expect.arrayContaining(['password', 'token', 'password hash', 'hash password'])
+    );
   });
 
   test('should contain correct data for each seeded order', async () => {
