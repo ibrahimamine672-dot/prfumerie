@@ -18,16 +18,20 @@ export default function Checkout() {
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState('');
   const [delivery, setDelivery] = useState({
-    name: '',
+    fullName: '',
     email: '',
     phone: '',
-    location: ''
+    address: '',
+    city: '',
+    postalCode: '',
+    deliveryMethod: 'standard'
   });
+  const [paymentMethod, setPaymentMethod] = useState('cash_on_delivery');
   const [orderDetails, setOrderDetails] = useState(null);
 
-  const shipping = total >= 250 ? 0 : 15;
+  const deliveryPrice = total >= 500 ? 0 : delivery.deliveryMethod === 'express' ? 40 : 20;
   const discountAmount = discountApplied ? Math.round(total * (discountApplied.percent / 100) * 100) / 100 : 0;
-  const grandTotal = Math.max(0, total + shipping - discountAmount);
+  const grandTotal = Math.max(0, total + deliveryPrice - discountAmount);
 
   const handleApplyDiscount = async () => {
     const code = discountCode.trim().toUpperCase();
@@ -68,8 +72,16 @@ export default function Checkout() {
     if (items.length === 0) return;
 
     // Validate delivery info
-    if (!delivery.name.trim() || !delivery.email.trim() || !delivery.location.trim()) {
-      setOrderError('Please fill in your name, email and location for delivery');
+    const requiredDeliveryFields = [
+      delivery.fullName,
+      delivery.email,
+      delivery.phone,
+      delivery.address,
+      delivery.city,
+      delivery.postalCode
+    ];
+    if (requiredDeliveryFields.some((value) => !value.trim())) {
+      setOrderError('Please complete all delivery fields');
       return;
     }
 
@@ -79,10 +91,21 @@ export default function Checkout() {
     const token = localStorage.getItem('token');
 
     const orderData = {
-      name: delivery.name.trim(),
+      name: delivery.fullName.trim(),
       email: delivery.email.trim(),
       phone: delivery.phone.trim(),
-      location: delivery.location.trim(),
+      location: `${delivery.address.trim()}, ${delivery.city.trim()} ${delivery.postalCode.trim()}`,
+      delivery: {
+        fullName: delivery.fullName.trim(),
+        phone: delivery.phone.trim(),
+        address: delivery.address.trim(),
+        city: delivery.city.trim(),
+        postalCode: delivery.postalCode.trim(),
+        deliveryMethod: delivery.deliveryMethod
+      },
+      payment: {
+        method: paymentMethod
+      },
       items: items.map(item => ({
         perfumeId: item.id || item._id,
         name: item.name,
@@ -92,11 +115,11 @@ export default function Checkout() {
         image: item.image || ''
       })),
       subtotal: total,
-      shipping,
+      shipping: deliveryPrice,
       discountCode: discountApplied?.code || null,
       discountPercent: discountApplied?.percent || 0,
       discountAmount,
-      total: Math.max(0, total + shipping - discountAmount)
+      total: grandTotal
     };
 
     try {
@@ -159,6 +182,7 @@ export default function Checkout() {
             >
               Thank you for your purchase, {orderDetails?.name}!<br />
               Your order has been saved and will be shipped to <strong>{orderDetails?.location}</strong>.<br />
+              Payment status: <strong>{orderDetails?.payment?.status || 'pending'}</strong>.<br />
               A confirmation email will be sent to <strong>{orderDetails?.email}</strong>.{orderDetails?.freeItemApplied && (
                 <>
                   <br /><br />
@@ -227,10 +251,10 @@ export default function Checkout() {
                   <label htmlFor="delivery-name">Full Name *</label>
                   <input
                     id="delivery-name"
-                    name="name"
+                    name="fullName"
                     type="text"
                     placeholder="e.g. Jean Dupont"
-                    value={delivery.name}
+                    value={delivery.fullName}
                     onChange={handleDeliveryChange}
                     autoFocus
                   />
@@ -249,7 +273,7 @@ export default function Checkout() {
               </div>
               <div className="form-row">
                 <div className="checkout-form-group">
-                  <label htmlFor="delivery-phone">Phone Number</label>
+                  <label htmlFor="delivery-phone">Phone Number *</label>
                   <input
                     id="delivery-phone"
                     name="phone"
@@ -260,17 +284,107 @@ export default function Checkout() {
                   />
                 </div>
                 <div className="checkout-form-group">
-                  <label htmlFor="delivery-location">Delivery Location *</label>
+                  <label htmlFor="delivery-address">Address *</label>
                   <input
-                    id="delivery-location"
-                    name="location"
+                    id="delivery-address"
+                    name="address"
                     type="text"
-                    placeholder="e.g. Casablanca, Morocco"
-                    value={delivery.location}
+                    placeholder="e.g. 12 Rue des Fleurs"
+                    value={delivery.address}
                     onChange={handleDeliveryChange}
                   />
                 </div>
               </div>
+              <div className="form-row">
+                <div className="checkout-form-group">
+                  <label htmlFor="delivery-city">City *</label>
+                  <input
+                    id="delivery-city"
+                    name="city"
+                    type="text"
+                    placeholder="e.g. Casablanca"
+                    value={delivery.city}
+                    onChange={handleDeliveryChange}
+                  />
+                </div>
+                <div className="checkout-form-group">
+                  <label htmlFor="delivery-postal-code">Postal Code *</label>
+                  <input
+                    id="delivery-postal-code"
+                    name="postalCode"
+                    type="text"
+                    placeholder="e.g. 20000"
+                    value={delivery.postalCode}
+                    onChange={handleDeliveryChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="checkout-choice-section">
+              <h2 className="checkout-items-title">Delivery Method</h2>
+              <div className="choice-grid">
+                <label className={`choice-option ${delivery.deliveryMethod === 'standard' ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="deliveryMethod"
+                    value="standard"
+                    checked={delivery.deliveryMethod === 'standard'}
+                    onChange={handleDeliveryChange}
+                  />
+                  <span>
+                    <strong>Standard delivery</strong>
+                    <small>20 MAD · approximately 3–5 days</small>
+                  </span>
+                </label>
+                <label className={`choice-option ${delivery.deliveryMethod === 'express' ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="deliveryMethod"
+                    value="express"
+                    checked={delivery.deliveryMethod === 'express'}
+                    onChange={handleDeliveryChange}
+                  />
+                  <span>
+                    <strong>Express delivery</strong>
+                    <small>40 MAD · approximately 1–2 days</small>
+                  </span>
+                </label>
+              </div>
+              {total >= 500 && <p className="free-delivery-note">Delivery is free for this order.</p>}
+            </div>
+
+            <div className="checkout-choice-section">
+              <h2 className="checkout-items-title">Payment Method</h2>
+              <div className="choice-grid payment-choice-grid">
+                {[
+                  ['cash_on_delivery', 'Cash on delivery', 'Pay when your order arrives'],
+                  ['card_fake', 'Demo card payment', 'Instant simulated payment'],
+                  ['paypal_fake', 'Demo PayPal', 'Instant simulated payment']
+                ].map(([value, label, description]) => (
+                  <label key={value} className={`choice-option ${paymentMethod === value ? 'selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value={value}
+                      checked={paymentMethod === value}
+                      onChange={(event) => {
+                        setPaymentMethod(event.target.value);
+                        setOrderError('');
+                      }}
+                    />
+                    <span>
+                      <strong>{label}</strong>
+                      <small>{description}</small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              {paymentMethod !== 'cash_on_delivery' && (
+                <p className="payment-demo-note">
+                  Demo only. No real payment or card information is requested.
+                </p>
+              )}
             </div>
 
             <h2 className="checkout-items-title" style={{ marginTop: 32 }}>Order Summary</h2>
@@ -288,7 +402,7 @@ export default function Checkout() {
                   <img src={item.image} alt={item.name} className="checkout-item-image" />
                   <div className="checkout-item-info">
                     <span className="checkout-item-name">{item.name}</span>
-                    <span className="checkout-item-meta">{item.size} &middot; ${item.price}</span>
+                    <span className="checkout-item-meta">{item.size} &middot; {item.price} MAD</span>
                     <div className="checkout-item-actions">
                       <div className="checkout-qty-controls">
                         <button
@@ -307,7 +421,7 @@ export default function Checkout() {
                       >Remove</button>
                     </div>
                   </div>
-                  <span className="checkout-item-total">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="checkout-item-total">{(item.price * item.quantity).toFixed(2)} MAD</span>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -319,24 +433,24 @@ export default function Checkout() {
 
             <div className="summary-row">
               <span>Subtotal ({count} {count === 1 ? 'item' : 'items'})</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{total.toFixed(2)} MAD</span>
             </div>
 
             <div className="summary-row">
-              <span>Shipping</span>
-              <span>{shipping === 0 ? <span style={{ color: '#16a34a', fontWeight: 500 }}>Free</span> : `$${shipping.toFixed(2)}`}</span>
+              <span>Delivery ({delivery.deliveryMethod})</span>
+              <span>{deliveryPrice === 0 ? <span style={{ color: '#16a34a', fontWeight: 500 }}>Free</span> : `${deliveryPrice.toFixed(2)} MAD`}</span>
             </div>
 
             {discountApplied && (
               <div className="summary-row">
                 <span style={{ color: '#16a34a' }}>Discount ({discountApplied.percent}%)</span>
-                <span style={{ color: '#16a34a' }}>−${discountAmount.toFixed(2)}</span>
+                <span style={{ color: '#16a34a' }}>−{discountAmount.toFixed(2)} MAD</span>
               </div>
             )}
 
             <div className="summary-row-total">
               <span>Total</span>
-              <span>${grandTotal.toFixed(2)}</span>
+              <span>{grandTotal.toFixed(2)} MAD</span>
             </div>
 
             {/* Discount Code */}
@@ -421,7 +535,7 @@ export default function Checkout() {
                   Processing...
                 </span>
               ) : (
-                `Place Order — $${grandTotal.toFixed(2)}`
+                `Place Order — ${grandTotal.toFixed(2)} MAD`
               )}
             </button>
           </div>

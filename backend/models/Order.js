@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+const PAYMENT_METHODS = ['cash_on_delivery', 'card_fake', 'paypal_fake'];
+const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
+const DELIVERY_METHODS = ['standard', 'express'];
+const DELIVERY_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+
 const orderItemSchema = new mongoose.Schema({
   perfumeId: {
     type: mongoose.Schema.Types.Mixed,
@@ -19,6 +24,48 @@ const orderItemSchema = new mongoose.Schema({
   image: { type: String, default: '' }
 }, { _id: false });
 
+const paymentSchema = new mongoose.Schema({
+  method: {
+    type: String,
+    enum: PAYMENT_METHODS,
+    required: true,
+    default: 'cash_on_delivery'
+  },
+  status: {
+    type: String,
+    enum: PAYMENT_STATUSES,
+    required: true,
+    default: 'pending'
+  },
+  amount: { type: Number, required: true, min: 0, default: 0 },
+  transactionId: { type: String, default: null, trim: true },
+  paidAt: { type: Date, default: null }
+}, { _id: false });
+
+const deliverySchema = new mongoose.Schema({
+  fullName: { type: String, required: true, trim: true, default: 'Not provided' },
+  phone: { type: String, required: true, trim: true, default: 'Not provided' },
+  address: { type: String, required: true, trim: true, default: 'Not provided' },
+  city: { type: String, required: true, trim: true, default: 'Not provided' },
+  postalCode: { type: String, required: true, trim: true, default: 'Not provided' },
+  deliveryMethod: {
+    type: String,
+    enum: DELIVERY_METHODS,
+    required: true,
+    default: 'standard'
+  },
+  deliveryPrice: { type: Number, required: true, min: 0, default: 0 },
+  status: {
+    type: String,
+    enum: DELIVERY_STATUSES,
+    required: true,
+    default: 'pending'
+  },
+  trackingNumber: { type: String, default: null, trim: true },
+  estimatedDeliveryDate: { type: Date, default: null },
+  deliveredAt: { type: Date, default: null }
+}, { _id: false });
+
 const orderSchema = new mongoose.Schema({
   // Client info
   name: { type: String, required: true, trim: true },
@@ -36,6 +83,11 @@ const orderSchema = new mongoose.Schema({
   discountPercent: { type: Number, default: 0, min: 0, max: 100 },
   discountAmount: { type: Number, default: 0, min: 0 },
   total: { type: Number, required: true, min: 0 },
+  productsPrice: { type: Number, required: true, min: 0, default: 0 },
+  deliveryPrice: { type: Number, required: true, min: 0, default: 0 },
+  totalPrice: { type: Number, required: true, min: 0, default: 0 },
+  payment: { type: paymentSchema, required: true, default: () => ({}) },
+  delivery: { type: deliverySchema, required: true, default: () => ({}) },
 
   // Loyalty — free item
   freeItemApplied: { type: Boolean, default: false },
@@ -60,6 +112,14 @@ const orderSchema = new mongoose.Schema({
 
 orderSchema.index({ email: 1 });
 orderSchema.index({ status: 1 });
+orderSchema.index({ 'payment.status': 1 });
+orderSchema.index({ 'delivery.status': 1 });
 orderSchema.index({ createdAt: -1 });
 
-module.exports = mongoose.model('Order', orderSchema);
+const Order = mongoose.model('Order', orderSchema);
+
+module.exports = Order;
+module.exports.PAYMENT_METHODS = PAYMENT_METHODS;
+module.exports.PAYMENT_STATUSES = PAYMENT_STATUSES;
+module.exports.DELIVERY_METHODS = DELIVERY_METHODS;
+module.exports.DELIVERY_STATUSES = DELIVERY_STATUSES;

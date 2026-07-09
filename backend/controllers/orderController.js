@@ -1,23 +1,73 @@
 const Order = require('../models/Order');
 const Perfume = require('../models/Perfume');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
+
+const DELIVERY_PRICES = {
+  standard: 20,
+  express: 40,
+};
+
+const FREE_DELIVERY_THRESHOLD = 500;
+const FAKE_PAYMENT_METHODS = ['card_fake', 'paypal_fake'];
+
+const getDeliveryPrice = (productsPrice, deliveryMethod) => {
+  if (productsPrice >= FREE_DELIVERY_THRESHOLD) {
+    return 0;
+  }
+  return DELIVERY_PRICES[deliveryMethod];
+};
+
+const createTransactionId = (method) => {
+  const prefix = method === 'card_fake' ? 'CARD' : 'PAYPAL';
+  return `${prefix}-FAKE-${crypto.randomUUID()}`;
+};
 
 exports.createOrder = async (req, res, next) => {
   try {
-    let { name, email, phone, location, items, subtotal, shipping, discountCode, discountPercent, discountAmount, total } = req.body;
+    let { name, email, phone, location, items, discountCode } = req.body;
+    const deliveryInput = req.body.delivery;
+    const paymentMethod = req.body.payment?.method || 'cash_on_delivery';
 
-    // Validate required fields
-    if (!name || !email || !location) {
-      return res.status(400).json({ message: 'Name, email and location are required for delivery' });
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Name and email are required' });
     }
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'Order must contain at least one item' });
     }
 
-    // Server-side total verification
-    const calculatedSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    shipping = calculatedSubtotal >= 250 ? 0 : 15;
+    const delivery = deliveryInput
+      ? {
+          fullName: deliveryInput.fullName?.trim(),
+          phone: deliveryInput.phone?.trim(),
+          address: deliveryInput.address?.trim(),
+          city: deliveryInput.city?.trim(),
+          postalCode: deliveryInput.postalCode?.trim(),
+          deliveryMethod: deliveryInput.deliveryMethod || 'standard',
+        }
+      : {
+          // Legacy clients used a single location field.
+          fullName: name.trim(),
+          phone: phone?.trim() || 'Not provided',
+          address: location?.trim() || 'Not provided',
+          city: location?.trim() || 'Not provided',
+          postalCode: 'Not provided',
+          deliveryMethod: 'standard',
+        };
+
+    if (
+      !delivery.fullName
+      || !delivery.phone
+      || !delivery.address
+      || !delivery.city
+      || !delivery.postalCode
+    ) {
+      return res.status(400).json({ message: 'Complete delivery information is required' });
+    }
+
+    const productsPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const deliveryPrice = getDeliveryPrice(productsPrice, delivery.deliveryMethod);
     let calculatedDiscountAmount = 0;
     let calculatedDiscountPercent = 0;
 
@@ -28,7 +78,7 @@ exports.createOrder = async (req, res, next) => {
         const user = await User.findById(req.user._id);
         if (user && user.discountCode === discountCode) {
           calculatedDiscountPercent = 15;
-          calculatedDiscountAmount = calculatedSubtotal * 0.15;
+          calculatedDiscountAmount = productsPrice * 0.15;
         } else {
           discountCode = null;
         }
@@ -56,7 +106,14 @@ exports.createOrder = async (req, res, next) => {
       }
     }
 
-    const calculatedTotal = Math.max(0, calculatedSubtotal + shipping - calculatedDiscountAmount - freeItemDiscount);
+    const totalPrice = Math.max(
+      0,
+      productsPrice + deliveryPrice - calculatedDiscountAmount - freeItemDiscount
+    );
+    const isFakePayment = FAKE_PAYMENT_METHODS.includes(paymentMethod);
+    const now = new Date();
+    const estimatedDeliveryDate = new Date(now);
+    estimatedDeliveryDate.setDate(now.getDate() + (delivery.deliveryMethod === 'express' ? 2 : 5));
 
     // Verify stock for each item (only when perfumeId is a string ObjectId — skip numeric IDs)
     for (const item of items) {
@@ -74,17 +131,35 @@ exports.createOrder = async (req, res, next) => {
     const order = await Order.create({
       name,
       email,
-      phone: phone || '',
-      location,
+      phone: delivery.phone,
+      location: `${delivery.address}, ${delivery.city} ${delivery.postalCode}`.trim(),
       items,
-      subtotal: calculatedSubtotal,
-      shipping,
+      subtotal: productsPrice,
+      shipping: deliveryPrice,
       discountCode: discountCode || null,
       discountPercent: calculatedDiscountPercent,
       discountAmount: calculatedDiscountAmount,
       freeItemApplied,
       freeItemDiscount,
-      total: calculatedTotal,
+      total: totalPrice,
+      productsPrice,
+      deliveryPrice,
+      totalPrice,
+      payment: {
+        method: paymentMethod,
+        status: isFakePayment ? 'paid' : 'pending',
+        amount: totalPrice,
+        transactionId: isFakePayment ? createTransactionId(paymentMethod) : null,
+        paidAt: isFakePayment ? now : null,
+      },
+      delivery: {
+        ...delivery,
+        deliveryPrice,
+        status: 'pending',
+        trackingNumber: null,
+        estimatedDeliveryDate,
+        deliveredAt: null,
+      },
       user: req.user ? req.user._id : null
     });
 
@@ -125,9 +200,14 @@ exports.createOrder = async (req, res, next) => {
       name: order.name,
       email: order.email,
       location: order.location,
-      total: order.total,
+      productsPrice: order.productsPrice,
+      deliveryPrice: order.deliveryPrice,
+      totalPrice: order.totalPrice,
+      total: order.totalPrice,
+      payment: order.payment,
+      delivery: order.delivery,
       items: order.items.length,
-      status: order.status,
+      status: order.delivery.status,
       createdAt: order.createdAt,
       freeItemApplied,
       freeItemDiscount,
@@ -210,16 +290,70 @@ exports.updateOrderStatus = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid status. Must be: ' + validStatuses.join(', ') });
     }
 
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true, runValidators: true }
-    );
+    const deliveryStatus = status === 'confirmed' ? 'processing' : status;
+    const update = {
+      status,
+      'delivery.status': deliveryStatus,
+    };
+
+    if (status === 'delivered') {
+      update['delivery.deliveredAt'] = new Date();
+    }
+
+    const order = await Order.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+      runValidators: true
+    });
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
+    res.json(order);
+  } catch (error) {
+    res.status(400);
+    next(error);
+  }
+};
+
+exports.updateOrderFulfillment = async (req, res, next) => {
+  try {
+    const {
+      paymentStatus,
+      deliveryStatus,
+      trackingNumber,
+      estimatedDeliveryDate,
+    } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (paymentStatus !== undefined) {
+      order.payment.status = paymentStatus;
+      if (paymentStatus === 'paid' && !order.payment.paidAt) {
+        order.payment.paidAt = new Date();
+      }
+    }
+
+    if (deliveryStatus !== undefined) {
+      order.delivery.status = deliveryStatus;
+      order.status = deliveryStatus === 'processing' ? 'confirmed' : deliveryStatus;
+      if (deliveryStatus === 'delivered' && !order.delivery.deliveredAt) {
+        order.delivery.deliveredAt = new Date();
+      }
+    }
+
+    if (trackingNumber !== undefined) {
+      order.delivery.trackingNumber = trackingNumber || null;
+    }
+
+    if (estimatedDeliveryDate !== undefined) {
+      order.delivery.estimatedDeliveryDate = estimatedDeliveryDate || null;
+    }
+
+    await order.save();
     res.json(order);
   } catch (error) {
     res.status(400);
@@ -244,15 +378,21 @@ exports.exportOrdersToExcel = async (req, res, next) => {
 
     // Define columns
     worksheet.columns = [
-      { header: 'Order ID', key: 'id', width: 28 },
-      { header: 'Customer Name', key: 'name', width: 22 },
-      { header: 'Email', key: 'email', width: 30 },
-      { header: 'Phone', key: 'phone', width: 18 },
-      { header: 'Product', key: 'product', width: 40 },
-      { header: 'Quantity', key: 'quantity', width: 10 },
-      { header: 'Total Price', key: 'total', width: 14 },
-      { header: 'Status', key: 'status', width: 14 },
-      { header: 'Date', key: 'date', width: 20 },
+      { header: 'Nom client', key: 'customerName', width: 24 },
+      { header: 'Email client', key: 'email', width: 30 },
+      { header: 'Téléphone', key: 'phone', width: 20 },
+      { header: 'Adresse', key: 'address', width: 36 },
+      { header: 'Ville', key: 'city', width: 20 },
+      { header: 'Produits', key: 'products', width: 45 },
+      { header: 'Total produits', key: 'productsPrice', width: 18 },
+      { header: 'Prix livraison', key: 'deliveryPrice', width: 18 },
+      { header: 'Total final', key: 'totalPrice', width: 18 },
+      { header: 'Méthode paiement', key: 'paymentMethod', width: 22 },
+      { header: 'Statut paiement', key: 'paymentStatus', width: 18 },
+      { header: 'Mode livraison', key: 'deliveryMethod', width: 18 },
+      { header: 'Statut livraison', key: 'deliveryStatus', width: 18 },
+      { header: 'Numéro de suivi', key: 'trackingNumber', width: 24 },
+      { header: 'Date commande', key: 'date', width: 22 },
     ];
 
     // Style the header row
@@ -269,7 +409,9 @@ exports.exportOrdersToExcel = async (req, res, next) => {
     // Add data rows
     orders.forEach((order) => {
       const productNames = order.items.map((item) => item.name).join(', ');
-      const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+      const productsPrice = order.productsPrice ?? order.subtotal ?? 0;
+      const deliveryPrice = order.deliveryPrice ?? order.shipping ?? 0;
+      const totalPrice = order.totalPrice ?? order.total ?? 0;
       const dateFormatted = order.createdAt
         ? new Date(order.createdAt).toLocaleDateString('fr-FR', {
             day: '2-digit',
@@ -281,14 +423,20 @@ exports.exportOrdersToExcel = async (req, res, next) => {
         : '';
 
       worksheet.addRow({
-        id: order._id.toString(),
-        name: order.name,
+        customerName: order.delivery?.fullName || order.name,
         email: order.email,
-        phone: order.phone || '',
-        product: productNames,
-        quantity: totalQuantity,
-        total: order.total ? order.total.toFixed(2) + ' €' : '0.00 €',
-        status: order.status,
+        phone: order.delivery?.phone || order.phone || '',
+        address: order.delivery?.address || order.location || '',
+        city: order.delivery?.city || '',
+        products: productNames,
+        productsPrice: `${productsPrice.toFixed(2)} MAD`,
+        deliveryPrice: `${deliveryPrice.toFixed(2)} MAD`,
+        totalPrice: `${totalPrice.toFixed(2)} MAD`,
+        paymentMethod: order.payment?.method || 'cash_on_delivery',
+        paymentStatus: order.payment?.status || 'pending',
+        deliveryMethod: order.delivery?.deliveryMethod || 'standard',
+        deliveryStatus: order.delivery?.status || order.status || 'pending',
+        trackingNumber: order.delivery?.trackingNumber || '',
         date: dateFormatted,
       });
     });

@@ -114,9 +114,40 @@ const createOrderValidation = [
     .trim()
     .isLength({ max: 30 }).withMessage('Phone must be at most 30 characters'),
   body('location')
+    .optional()
     .trim()
-    .notEmpty().withMessage('Location is required')
     .isLength({ max: 200 }).withMessage('Location must be at most 200 characters'),
+  body('delivery.fullName')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Delivery full name is required')
+    .isLength({ max: 100 }).withMessage('Delivery full name must be at most 100 characters'),
+  body('delivery.phone')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Delivery phone is required')
+    .isLength({ max: 30 }).withMessage('Delivery phone must be at most 30 characters'),
+  body('delivery.address')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Delivery address is required')
+    .isLength({ max: 250 }).withMessage('Delivery address must be at most 250 characters'),
+  body('delivery.city')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Delivery city is required')
+    .isLength({ max: 100 }).withMessage('Delivery city must be at most 100 characters'),
+  body('delivery.postalCode')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Postal code is required')
+    .isLength({ max: 20 }).withMessage('Postal code must be at most 20 characters'),
+  body('delivery.deliveryMethod')
+    .optional()
+    .isIn(['standard', 'express']).withMessage('Invalid delivery method'),
+  body('payment.method')
+    .optional()
+    .isIn(['cash_on_delivery', 'card_fake', 'paypal_fake']).withMessage('Invalid payment method'),
   body('items')
     .isArray({ min: 1 }).withMessage('Order must contain at least one item'),
   body('items.*.perfumeId')
@@ -150,6 +181,33 @@ const updateOrderStatusValidation = [
     .notEmpty().withMessage('Status is required')
     .isIn(['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'])
     .withMessage('Invalid status value'),
+  validate,
+];
+
+const updateOrderFulfillmentValidation = [
+  param('id')
+    .trim()
+    .notEmpty().withMessage('Order ID is required')
+    .isMongoId().withMessage('Invalid order ID format'),
+  body()
+    .custom((value) => {
+      const allowedFields = ['paymentStatus', 'deliveryStatus', 'trackingNumber', 'estimatedDeliveryDate'];
+      return allowedFields.some((field) => value[field] !== undefined);
+    })
+    .withMessage('At least one fulfillment field is required'),
+  body('paymentStatus')
+    .optional()
+    .isIn(['pending', 'paid', 'failed', 'refunded']).withMessage('Invalid payment status'),
+  body('deliveryStatus')
+    .optional()
+    .isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled']).withMessage('Invalid delivery status'),
+  body('trackingNumber')
+    .optional({ values: 'null' })
+    .trim()
+    .isLength({ max: 100 }).withMessage('Tracking number must be at most 100 characters'),
+  body('estimatedDeliveryDate')
+    .optional({ values: 'null' })
+    .isISO8601().withMessage('Estimated delivery date must be a valid date'),
   validate,
 ];
 
@@ -303,6 +361,7 @@ module.exports = {
   loginValidation,
   createOrderValidation,
   updateOrderStatusValidation,
+  updateOrderFulfillmentValidation,
   getOrderByIdValidation,
   createPerfumeValidation,
   updatePerfumeValidation,
