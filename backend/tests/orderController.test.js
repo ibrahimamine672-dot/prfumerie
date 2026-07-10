@@ -278,6 +278,8 @@ describe('exportOrdersToExcel', () => {
   });
 
   test('should return 500 and error message when Order.find() fails', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
     mockLean.mockRejectedValue(new Error('Database connection failed'));
 
     const req = {};
@@ -294,6 +296,14 @@ describe('exportOrdersToExcel', () => {
     );
     expect(res.json).not.toHaveBeenCalled();
     expect(res.end).not.toHaveBeenCalled();
+
+    // Verify that the error was logged before passing it to the error handler
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Error exporting orders to Excel:',
+      expect.objectContaining({ message: 'Database connection failed' })
+    );
+
+    consoleErrorSpy.mockRestore();
   });
 
   test('should set worksheet column headers correctly', async () => {

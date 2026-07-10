@@ -1,10 +1,13 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
 const ExcelJS = require('exceljs');
 
-process.env.JWT_SECRET = 'payment-delivery-test-secret-key';
+const {
+  setupTestEnvironment,
+  teardownTestEnvironment,
+} = require('./testUtils');
+
 process.env.ADMIN_EMAIL = 'payments-admin@example.com';
 process.env.ADMIN_PASSWORD = 'payments-admin-password';
 process.env.ADMIN_NAME = 'Payments Admin';
@@ -47,9 +50,7 @@ const orderPayload = (paymentMethod, overrides = {}) => ({
 });
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongoServer.getUri();
-  await mongoose.connect(process.env.MONGODB_URI);
+  ({ mongoServer } = await setupTestEnvironment());
 
   const admin = await User.create({
     name: 'Payments Admin',
@@ -74,8 +75,7 @@ beforeAll(async () => {
 }, 30000);
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongoServer) await mongoServer.stop();
+  await teardownTestEnvironment({ mongoServer });
 });
 
 describe('Payment and delivery orders', () => {

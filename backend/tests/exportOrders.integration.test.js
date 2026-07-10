@@ -7,12 +7,14 @@
  */
 
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
 
-// Set env vars before requiring the app
-process.env.JWT_SECRET = 'test-jwt-secret-key-not-for-production';
+const {
+  setupTestEnvironment,
+  teardownTestEnvironment,
+} = require('./testUtils');
+
 process.env.ADMIN_EMAIL = 'new-admin@example.com';
 process.env.ADMIN_PASSWORD = 'adminpass1937';
 process.env.ADMIN_NAME = 'Test Admin';
@@ -65,14 +67,7 @@ const testOrders = [
 // ── Setup / Teardown ───────────────────────────────────────────────────────
 
 beforeAll(async () => {
-  // Start in-memory MongoDB
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-
-  // Override MONGODB_URI so connectDB uses the in-memory instance
-  process.env.MONGODB_URI = uri;
-
-  await mongoose.connect(uri);
+  ({ mongoServer } = await setupTestEnvironment());
 
   // Seed an admin user (password hashed by the User model's pre-save hook)
   const admin = await User.create({
@@ -99,10 +94,7 @@ beforeAll(async () => {
 }, 30000); // Allow time for mongodb-memory-server to download
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongoServer) {
-    await mongoServer.stop();
-  }
+  await teardownTestEnvironment({ mongoServer });
 });
 
 // ── Tests ──────────────────────────────────────────────────────────────────

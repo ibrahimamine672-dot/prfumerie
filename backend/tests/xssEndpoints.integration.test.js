@@ -10,11 +10,12 @@
  */
 
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const request = require('supertest');
 
-// Set env vars before requiring the app
-process.env.JWT_SECRET = 'test-jwt-secret-key-not-for-production';
+const {
+  setupTestEnvironment,
+  teardownTestEnvironment,
+} = require('./testUtils');
 
 const User = require('../models/User');
 const Order = require('../models/Order');
@@ -38,18 +39,12 @@ const CLEAN_BOLD = 'Paris';                     // <b>Paris</b> → 'Paris'
 // ── Setup / Teardown ───────────────────────────────────────────────────────
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongoServer.getUri();
-  await mongoose.connect(mongoServer.getUri());
-  // Require app AFTER DB is connected so connectDB skips reconnection
+  ({ mongoServer } = await setupTestEnvironment());
   app = require('../server');
 }, 30000);
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongoServer) {
-    await mongoServer.stop();
-  }
+  await teardownTestEnvironment({ mongoServer });
 });
 
 afterEach(async () => {

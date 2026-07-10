@@ -160,12 +160,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Ensure DB connection is available for API routes and admin account exists
+// Ensure DB connection is available for API routes and admin account exists.
 // ensureAdminAccount() is called here (not just in startServer) because Vercel
 // serverless functions may never run startServer() — the middleware is the only
 // guaranteed execution path in production. The internal provisioningPromise
 // cache makes subsequent calls a no-op after the first success.
-app.use('/api', async (req, res, next) => {
+//
+// This runs for ALL paths (not just /api) because Vercel's serverless function
+// routing may strip the /api prefix before passing the request to Express.
+app.use(async (req, res, next) => {
   try {
     await connectDB();
     await ensureAdminAccount();
@@ -175,10 +178,29 @@ app.use('/api', async (req, res, next) => {
   }
 });
 
-app.use('/api/perfumes', require('./routes/perfumes'));
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/admin', require('./routes/admin'));
+// ── Route mounting ───────────────────────────────────────────
+//
+// Each router is mounted at BOTH:
+//   /api/name  — used when Vercel preserves the /api prefix (local dev, Docker)
+//   /name      — fallback when Vercel strips the /api prefix (serverless routing)
+//
+// Express processes mounts in order; only the matching one fires.
+
+const perfumesRouter = require('./routes/perfumes');
+const authRouter = require('./routes/auth');
+const ordersRouter = require('./routes/orders');
+const adminRouter = require('./routes/admin');
+
+app.use('/api/perfumes', perfumesRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/admin', adminRouter);
+
+// Duplicate mounts without /api prefix for Vercel serverless compatibility
+app.use('/perfumes', perfumesRouter);
+app.use('/auth', authRouter);
+app.use('/orders', ordersRouter);
+app.use('/admin', adminRouter);
 
 // Catch-all 404 for unmatched /api/* routes (before error handler — Express skips
 // regular middleware when next(err) is called, so 404 handlers must come first)
@@ -186,7 +208,24 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Catch-all 404 for all other unmatched routes (non-API)
+// Also catch unmatched routes when Vercel strips the /api prefix
+app.use('/admin/*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+app.use('/orders/*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+app.use('/auth/*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+app.use('/perfumes/*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+// Catch-all 404 for all other unmatched routes
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
