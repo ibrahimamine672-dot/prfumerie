@@ -150,19 +150,25 @@ describe('exportOrdersToExcel', () => {
     // Expect one row added per order
     expect(mockAddRow).toHaveBeenCalledTimes(1);
     expect(mockAddRow).toHaveBeenCalledWith({
-      id: order._id.toString(),
-      name: order.name,
+      customerName: order.delivery?.fullName || order.name,
       email: order.email,
-      phone: order.phone,
-      product: 'Rose Elixir, Ambre Nuit',
-      quantity: 3,
-      total: '290.00 €',
-      status: order.status,
+      phone: order.delivery?.phone || order.phone || '',
+      address: order.delivery?.address || order.location || '',
+      city: order.delivery?.city || '',
+      products: 'Rose Elixir, Ambre Nuit',
+      productsPrice: '290.00 MAD',
+      deliveryPrice: '0.00 MAD',
+      totalPrice: '290.00 MAD',
+      paymentMethod: order.payment?.method || 'cash_on_delivery',
+      paymentStatus: order.payment?.status || 'pending',
+      deliveryMethod: order.delivery?.deliveryMethod || 'standard',
+      deliveryStatus: order.delivery?.status || order.status || 'pending',
+      trackingNumber: order.delivery?.trackingNumber || '',
       date: expect.any(String),
     });
   });
 
-  test('should flatten multiple order items into a single product string and summed quantity', async () => {
+  test('should flatten multiple order items into a single product string', async () => {
     const order = buildOrder({
       items: [
         { name: 'Rose Elixir', price: 85, quantity: 2 },
@@ -179,13 +185,12 @@ describe('exportOrdersToExcel', () => {
 
     expect(mockAddRow).toHaveBeenCalledWith(
       expect.objectContaining({
-        product: 'Rose Elixir, Ambre Nuit, Musc Blanc',
-        quantity: 6,
+        products: 'Rose Elixir, Ambre Nuit, Musc Blanc',
       })
     );
   });
 
-  test('should format total price with euro symbol and two decimals', async () => {
+  test('should format total price with MAD symbol and two decimals', async () => {
     const order = buildOrder({ total: 123.5 });
     mockLean.mockResolvedValue([order]);
 
@@ -195,7 +200,7 @@ describe('exportOrdersToExcel', () => {
     await exportOrdersToExcel(req, res);
 
     expect(mockAddRow).toHaveBeenCalledWith(
-      expect.objectContaining({ total: '123.50 €' })
+      expect.objectContaining({ totalPrice: '123.50 MAD' })
     );
   });
 
@@ -209,7 +214,7 @@ describe('exportOrdersToExcel', () => {
     await exportOrdersToExcel(req, res);
 
     expect(mockAddRow).toHaveBeenCalledWith(
-      expect.objectContaining({ total: '0.00 €' })
+      expect.objectContaining({ totalPrice: '0.00 MAD' })
     );
   });
 

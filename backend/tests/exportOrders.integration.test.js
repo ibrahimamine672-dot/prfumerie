@@ -234,15 +234,21 @@ describe('GET /api/admin/orders/export', () => {
     // Check header row (row 1)
     const headerRow = worksheet.getRow(1);
     const expectedHeaders = [
-      'Order ID',
-      'Customer Name',
-      'Email',
-      'Phone',
-      'Product',
-      'Quantity',
-      'Total Price',
-      'Status',
-      'Date',
+      'Nom client',
+      'Email client',
+      'Téléphone',
+      'Adresse',
+      'Ville',
+      'Produits',
+      'Total produits',
+      'Prix livraison',
+      'Total final',
+      'Méthode paiement',
+      'Statut paiement',
+      'Mode livraison',
+      'Statut livraison',
+      'Numéro de suivi',
+      'Date commande',
     ];
 
     expectedHeaders.forEach((header, i) => {
@@ -269,25 +275,39 @@ describe('GET /api/admin/orders/export', () => {
 
     // --- Row 2: Hugo Leclerc ---
     const row2 = worksheet.getRow(2);
-    expect(row2.getCell(2).value).toBe('Hugo Leclerc');  // Customer Name
-    expect(row2.getCell(3).value).toBe('hugo@example.com'); // Email
-    expect(row2.getCell(4).value).toBe('');                 // Phone (empty)
-    expect(row2.getCell(5).value).toBe('Vetiver Royal, Ombre Sauvage'); // Product (joined)
-    expect(row2.getCell(6).value).toBe(3);                  // Quantity (2+1)
-    expect(row2.getCell(7).value).toBe('685.00 €');         // Total Price
-    expect(row2.getCell(8).value).toBe('pending');          // Status
-    expect(row2.getCell(9).value).toContain('01/07/2026');  // Date (French locale)
+    expect(row2.getCell(1).value).toBe('Hugo Leclerc');  // Nom client
+    expect(row2.getCell(2).value).toBe('hugo@example.com'); // Email client
+    expect(row2.getCell(3).value).toBe('');                 // Téléphone (empty)
+    expect(row2.getCell(4).value).toBe('8 Avenue des Champs-Élysées, Paris'); // Adresse
+    expect(row2.getCell(5).value).toBe('');                 // Ville (empty)
+    expect(row2.getCell(6).value).toBe('Vetiver Royal, Ombre Sauvage'); // Produits (joined)
+    expect(row2.getCell(7).value).toBe('685.00 MAD');       // Total produits
+    expect(row2.getCell(8).value).toBe('0.00 MAD');         // Prix livraison
+    expect(row2.getCell(9).value).toBe('685.00 MAD');       // Total final
+    expect(row2.getCell(10).value).toBe('cash_on_delivery'); // Méthode paiement
+    expect(row2.getCell(11).value).toBe('pending');          // Statut paiement
+    expect(row2.getCell(12).value).toBe('standard');         // Mode livraison
+    expect(row2.getCell(13).value).toBe('pending');          // Statut livraison
+    expect(row2.getCell(14).value).toBe('');                 // Numéro de suivi (empty)
+    expect(row2.getCell(15).value).toContain('01/07/2026');  // Date commande
 
     // --- Row 3: Marie Lambert ---
     const row3 = worksheet.getRow(3);
-    expect(row3.getCell(2).value).toBe('Marie Lambert');
-    expect(row3.getCell(3).value).toBe('marie@example.com');
-    expect(row3.getCell(4).value).toBe('+33 6 11 22 33 44');
-    expect(row3.getCell(5).value).toBe('Noir Absolu');
-    expect(row3.getCell(6).value).toBe(1);
-    expect(row3.getCell(7).value).toBe('285.00 €');
-    expect(row3.getCell(8).value).toBe('delivered');
-    expect(row3.getCell(9).value).toContain('01/06/2026');
+    expect(row3.getCell(1).value).toBe('Marie Lambert');
+    expect(row3.getCell(2).value).toBe('marie@example.com');
+    expect(row3.getCell(3).value).toBe('+33 6 11 22 33 44');
+    expect(row3.getCell(4).value).toBe('15 Rue de Rivoli, Paris');
+    expect(row3.getCell(5).value).toBe('');
+    expect(row3.getCell(6).value).toBe('Noir Absolu');
+    expect(row3.getCell(7).value).toBe('285.00 MAD');
+    expect(row3.getCell(8).value).toBe('0.00 MAD');
+    expect(row3.getCell(9).value).toBe('285.00 MAD');
+    expect(row3.getCell(10).value).toBe('cash_on_delivery');
+    expect(row3.getCell(11).value).toBe('pending');
+    expect(row3.getCell(12).value).toBe('standard');
+    expect(row3.getCell(13).value).toBe('delivered');
+    expect(row3.getCell(14).value).toBe('');
+    expect(row3.getCell(15).value).toContain('01/06/2026');
   });
 
   test('should return empty orders gracefully when no data exists', async () => {
@@ -303,7 +323,7 @@ describe('GET /api/admin/orders/export', () => {
     const worksheet = workbook.getWorksheet('Commandes');
     // Only header row exists (no data rows)
     expect(worksheet.rowCount).toBe(1);
-    expect(worksheet.getRow(1).getCell(1).value).toBe('Order ID');
+    expect(worksheet.getRow(1).getCell(1).value).toBe('Nom client');
 
     // Restore the orders for other tests
     await Order.insertMany(testOrders);

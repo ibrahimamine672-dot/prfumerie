@@ -409,9 +409,9 @@ exports.exportOrdersToExcel = async (req, res, next) => {
     // Add data rows
     orders.forEach((order) => {
       const productNames = order.items.map((item) => item.name).join(', ');
-      const productsPrice = order.productsPrice ?? order.subtotal ?? 0;
-      const deliveryPrice = order.deliveryPrice ?? order.shipping ?? 0;
-      const totalPrice = order.totalPrice ?? order.total ?? 0;
+      const productsPrice = order.productsPrice || order.subtotal || 0;
+      const deliveryPrice = order.deliveryPrice || order.shipping || 0;
+      const totalPrice = order.totalPrice || order.total || 0;
       const dateFormatted = order.createdAt
         ? new Date(order.createdAt).toLocaleDateString('fr-FR', {
             day: '2-digit',
@@ -422,12 +422,25 @@ exports.exportOrdersToExcel = async (req, res, next) => {
           })
         : '';
 
+      const customerName = (order.delivery?.fullName && order.delivery.fullName !== 'Not provided')
+        ? order.delivery.fullName
+        : order.name;
+      const phone = (order.delivery?.phone && order.delivery.phone !== 'Not provided')
+        ? order.delivery.phone
+        : (order.phone || '');
+      const address = (order.delivery?.address && order.delivery.address !== 'Not provided')
+        ? order.delivery.address
+        : (order.location || '');
+      const city = (order.delivery?.city && order.delivery.city !== 'Not provided')
+        ? order.delivery.city
+        : '';
+
       worksheet.addRow({
-        customerName: order.delivery?.fullName || order.name,
+        customerName,
         email: order.email,
-        phone: order.delivery?.phone || order.phone || '',
-        address: order.delivery?.address || order.location || '',
-        city: order.delivery?.city || '',
+        phone,
+        address,
+        city,
         products: productNames,
         productsPrice: `${productsPrice.toFixed(2)} MAD`,
         deliveryPrice: `${deliveryPrice.toFixed(2)} MAD`,
@@ -435,7 +448,9 @@ exports.exportOrdersToExcel = async (req, res, next) => {
         paymentMethod: order.payment?.method || 'cash_on_delivery',
         paymentStatus: order.payment?.status || 'pending',
         deliveryMethod: order.delivery?.deliveryMethod || 'standard',
-        deliveryStatus: order.delivery?.status || order.status || 'pending',
+        deliveryStatus: (order.delivery?.status && order.delivery.status !== 'pending')
+          ? order.delivery.status
+          : (order.status || 'pending'),
         trackingNumber: order.delivery?.trackingNumber || '',
         date: dateFormatted,
       });

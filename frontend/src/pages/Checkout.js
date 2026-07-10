@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
@@ -28,6 +28,35 @@ export default function Checkout() {
   });
   const [paymentMethod, setPaymentMethod] = useState('cash_on_delivery');
   const [orderDetails, setOrderDetails] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      // Split location into address, city, postalCode if possible
+      let address = '';
+      let city = '';
+      let postalCode = '';
+      if (user.location) {
+        const parts = user.location.split(',');
+        if (parts.length > 0) address = parts[0].trim();
+        if (parts.length > 1) {
+          const rest = parts.slice(1).join(',').trim();
+          const cityParts = rest.split(' ');
+          if (cityParts.length > 0) city = cityParts[0].trim();
+          if (cityParts.length > 1) postalCode = cityParts.slice(1).join(' ').trim();
+        }
+      }
+
+      setDelivery(prev => ({
+        ...prev,
+        fullName: prev.fullName || user.name || '',
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || '',
+        address: prev.address || address || '',
+        city: prev.city || city || '',
+        postalCode: prev.postalCode || postalCode || ''
+      }));
+    }
+  }, [user]);
 
   const deliveryPrice = total >= 500 ? 0 : delivery.deliveryMethod === 'express' ? 40 : 20;
   const discountAmount = discountApplied ? Math.round(total * (discountApplied.percent / 100) * 100) / 100 : 0;
