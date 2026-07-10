@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { getAuthToken } from '../lib/auth';
 import API_URL, { parseJSON } from '../config';
 import './Checkout.css';
 
 export default function Checkout() {
   const { items, updateQuantity, removeItem, clearCart, total, count } = useCart();
-  const { user, updateUser } = useAuth();
+  const { user, token: authToken, updateUser } = useAuth();
   const freeItemAvailable = user?.freeItemAvailable || false;
   const [discountCode, setDiscountCode] = useState('');
   const [discountApplied, setDiscountApplied] = useState(null);
@@ -72,18 +73,44 @@ export default function Checkout() {
     setDiscountLoading(true);
     setDiscountError('');
 
-    // Simulate discount code validation
-    // In a real app, this would call the backend to validate the code
-    setTimeout(() => {
-      if (code.startsWith('WELCOME')) {
-        setDiscountApplied({ code, percent: 15 });
+    // Only validate discount code for authenticated users
+    if (!user) {
+      setDiscountError('Please sign in to use a discount code');
+      setDiscountLoading(false);
+      return;
+    }
+
+    // Validate discount code against the backend
+    try {
+      const token = authToken || getAuthToken();
+      const res = await fetch(`${API_URL}/auth/validate-discount`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = await parseJSON(res);
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to validate discount code');
+      }
+
+      if (data.valid) {
+        setDiscountApplied({ code: data.code, percent: data.percent });
         setDiscountError('');
       } else {
-        setDiscountError('Invalid discount code');
+        setDiscountError(data.message || 'Invalid discount code');
         setDiscountApplied(null);
       }
+    } catch (err) {
+      setDiscountError(err.message);
+      setDiscountApplied(null);
+    } finally {
       setDiscountLoading(false);
-    }, 500);
+    }
   };
 
   const handleRemoveDiscount = () => {
@@ -117,7 +144,7 @@ export default function Checkout() {
     setPlacing(true);
     setOrderError('');
 
-    const token = localStorage.getItem('token');
+    const token = authToken || getAuthToken();
 
     const orderData = {
       name: delivery.fullName.trim(),

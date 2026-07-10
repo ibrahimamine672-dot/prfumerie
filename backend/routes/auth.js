@@ -1,7 +1,7 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const router = express.Router();
-const { register, login, getMe } = require('../controllers/authController');
+const { register, login, validateDiscount, getMe } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 const { registerValidation, loginValidation } = require('../middleware/validation');
 const { getStore } = require('../lib/kv-store');
@@ -20,5 +20,6 @@ const loginLimiter = rateLimit({
 router.post('/register', registerValidation, register);
 router.post('/login', loginLimiter, loginValidation, login);
 router.get('/me', protect, getMe);
+router.post('/validate-discount', protect, validateDiscount);
 
 module.exports = router;

@@ -75,6 +75,45 @@ exports.login = async (req, res, next) => {
   }
 };
 
+/**
+ * Validate a discount code for the authenticated user.
+ * POST /api/auth/validate-discount
+ * Body: { code: string }
+ * Returns: { valid: boolean, percent?: number, message?: string }
+ */
+exports.validateDiscount = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ message: 'Discount code is required' });
+    }
+
+    const normalizedCode = code.trim().toUpperCase();
+
+    if (!normalizedCode.startsWith('WELCOME')) {
+      return res.json({ valid: false, message: 'Invalid discount code' });
+    }
+
+    const User = require('../models/User');
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    if (user.discountCode === normalizedCode) {
+      return res.json({ valid: true, percent: 15, code: normalizedCode });
+    }
+
+    // Code matches WELCOME* pattern but doesn't match user's stored code
+    return res.json({ valid: false, message: 'Invalid discount code' });
+  } catch (error) {
+    res.status(400);
+    next(error);
+  }
+};
+
 exports.getMe = async (req, res) => {
   res.json({
     _id: req.user._id,

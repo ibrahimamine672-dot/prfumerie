@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { getAuthToken } from '../lib/auth';
 import API_URL, { parseJSON } from '../config';
 
 export default function Profile() {
-  const { user, logout, updateUser } = useAuth();
+  const { user, token: authToken, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loyalty, setLoyalty] = useState({ completedOrders: 0, freeItemAvailable: false });
@@ -18,7 +19,7 @@ export default function Profile() {
     }
     const fetchOrders = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = authToken || getAuthToken();
         const res = await fetch(`${API_URL}/orders/mine`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -263,7 +264,7 @@ export default function Profile() {
                       <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{formatDate(order.createdAt)} &middot; {order.items?.length || 0} items</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <span style={{ fontWeight: 600 }}>${order.total?.toFixed(2)}</span>
+                      <span style={{ fontWeight: 600 }}>{order.total?.toFixed(2)} MAD</span>
                       <span className={`status-badge ${order.status}`}>
                         {order.status}
                       </span>

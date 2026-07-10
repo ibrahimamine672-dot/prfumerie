@@ -160,6 +160,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Ensure DB connection is available for API routes and admin account exists
+// ensureAdminAccount() is called here (not just in startServer) because Vercel
+// serverless functions may never run startServer() — the middleware is the only
+// guaranteed execution path in production. The internal provisioningPromise
+// cache makes subsequent calls a no-op after the first success.
 app.use('/api', async (req, res, next) => {
   try {
     await connectDB();

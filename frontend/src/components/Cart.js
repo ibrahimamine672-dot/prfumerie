@@ -25,7 +25,7 @@ export default function Cart() {
       >
         <div className="cart-header">
           <h2>Your Selection</h2>
-          <button className="cart-close" onClick={() => setIsOpen(false)}>
+          <button className="cart-close" onClick={() => setIsOpen(false)} aria-label="Close cart">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
@@ -63,7 +63,7 @@ export default function Cart() {
                         Remove
                       </button>
                     </div>
-                    <p className="cart-item-price">${item.price * item.quantity}</p>
+                    <p className="cart-item-price">{item.price * item.quantity} MAD</p>
                   </div>
                 </motion.div>
               ))}
@@ -72,7 +72,7 @@ export default function Cart() {
             <div className="cart-footer">
               <div className="cart-total">
                 <span>Total</span>
-                <span className="cart-total-amount">${total}</span>
+                <span className="cart-total-amount">{total.toFixed(2)} MAD</span>
               </div>
               <button
                 className="cart-checkout"

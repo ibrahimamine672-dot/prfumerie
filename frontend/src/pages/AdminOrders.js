@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { getAuthToken } from '../lib/auth';
 import API_URL, { parseJSON } from '../config';
 import './AdminOrders.css';
 
@@ -45,12 +46,12 @@ export default function AdminOrders() {
   const [fulfillmentForm, setFulfillmentForm] = useState(null);
   const [updating, setUpdating] = useState(false);
 
-  const { user, isAdmin } = useAuth();
-  const token = localStorage.getItem('token');
+  const { user, isAdmin, token: authToken } = useAuth();
+  const token = authToken || getAuthToken();
 
   const downloadOrdersExcel = async () => {
     try {
-      const adminToken = localStorage.getItem('token');
+      const adminToken = authToken || getAuthToken();
 
       if (!adminToken) {
         alert('Admin token not found. Please login again.');
@@ -262,7 +263,7 @@ export default function AdminOrders() {
                         <div className="cell-subtext">{view.phone}</div>
                       </td>
                       <td className="cell-products">
-                        {order.items.map((item) => `${item.name} × ${item.quantity}`).join(', ')}
+                        {(order.items || []).map((item) => `${item.name} × ${item.quantity}`).join(', ')}
                       </td>
                       <td>
                         <div className="cell-price-line"><span>Products</span><strong>{money(view.productsPrice)}</strong></div>
