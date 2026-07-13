@@ -13,7 +13,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
       # Le navigateur tourne hors de Docker → utiliser localhost (port mappé)
-      - REACT_APP_API_URL=http://localhost:5002/api
+      - REACT_APP_API_URL=http://localhost:5000/api
 
   # ── Backend (Dev with nodemon) ──
   backend:
