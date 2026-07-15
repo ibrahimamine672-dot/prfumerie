@@ -160,6 +160,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+
 // Ensure DB connection is available for API routes and admin account exists.
 // ensureAdminAccount() is called here (not just in startServer) because Vercel
 // serverless functions may never run startServer() — the middleware is the only
