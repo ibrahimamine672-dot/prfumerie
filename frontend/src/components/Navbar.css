@@ -397,6 +397,7 @@
 
 .dark-mode-toggle,
 .navbar-user-btn,
+.navbar-orders-btn,
 .navbar-logout-btn {
   color: var(--color-text-muted);
   padding: 9px;
@@ -411,6 +412,7 @@
 
 .dark-mode-toggle:hover,
 .navbar-user-btn:hover,
+.navbar-orders-btn:hover,
 .navbar-logout-btn:hover {
   color: var(--color-accent);
   background: rgba(201, 162, 77, 0.1);

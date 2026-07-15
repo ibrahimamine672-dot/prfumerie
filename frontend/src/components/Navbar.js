@@ -79,6 +79,17 @@ export default function Navbar() {
             <DarkModeToggle />
 
             {user && (
+              <Link to="/orders" className="navbar-orders-btn" aria-label="My Orders">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                  <rect x="9" y="3" width="6" height="4" rx="1" />
+                  <line x1="9" y1="12" x2="15" y2="12" />
+                  <line x1="9" y1="16" x2="13" y2="16" />
+                </svg>
+              </Link>
+            )}
+
+            {user && (
               <Link to="/profile" className="navbar-user-btn" aria-label="Profile">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
@@ -148,6 +159,8 @@ export default function Navbar() {
             <Link to="/products?gender=Women">Women</Link>
             <Link to="/signin">Sign In</Link>
             <Link to="/signup" className="signup-link">S'inscrire −15%</Link>
+            {user && <Link to="/orders">My Orders</Link>}
+            {user && <Link to="/profile">Profile</Link>}
             {user?.role === 'admin' && <Link to="/admin/orders">Admin</Link>}
           </motion.div>
         )}

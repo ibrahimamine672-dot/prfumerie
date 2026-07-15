@@ -239,7 +239,11 @@ export default function Checkout() {
               Thank you for your purchase, {orderDetails?.name}!<br />
               Your order has been saved and will be shipped to <strong>{orderDetails?.location}</strong>.<br />
               Payment status: <strong>{orderDetails?.payment?.status || 'pending'}</strong>.<br />
-              A confirmation email will be sent to <strong>{orderDetails?.email}</strong>.{orderDetails?.freeItemApplied && (
+              {orderDetails?.emailSent === true ? (
+                <span style={{ color: '#16a34a', fontWeight: 500 }}>✓ Confirmation email sent to <strong>{orderDetails?.email}</strong></span>
+              ) : (
+                <span style={{ color: '#92400e' }}>⚠ Confirmation email could not be sent. We will contact you manually.</span>
+              )}{orderDetails?.freeItemApplied && (
                 <>
                   <br /><br />
                   <span style={{

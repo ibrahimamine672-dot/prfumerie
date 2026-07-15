@@ -14,6 +14,7 @@ import SignIn from './pages/SignIn';
 import Checkout from './pages/Checkout';
 import AdminOrders from './pages/AdminOrders';
 import Profile from './pages/Profile';
+import Orders from './pages/Orders';
 import NotFound from './pages/NotFound';
 import './styles/global.css';
 
@@ -36,6 +37,7 @@ function App() {
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/orders" element={<Orders />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
