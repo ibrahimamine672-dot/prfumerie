@@ -1,3 +1,5 @@
+const PRODUCTION_API_URL = 'https://prfumerie-backend.vercel.app/api';
+
 // Detect if we're running in a production environment
 const isProductionHostname = () => {
   if (typeof window === 'undefined') return false;
@@ -18,9 +20,9 @@ const configuredApiUrl = viteEnv?.VITE_API_URL || nodeEnv.REACT_APP_API_URL;
 const API_URL = configuredApiUrl
   // Vite / CRA / custom env override. Accepts either the backend base URL or a URL ending in /api.
   ? normalizeApiUrl(configuredApiUrl)
-  // Production: relative path (Vercel rewrites handle /api/ -> backend)
+  // Production: call the backend deployment directly so admin APIs do not depend on frontend rewrites.
   : nodeEnv.NODE_ENV === 'production' || isProductionHostname()
-  ? '/api'
+  ? PRODUCTION_API_URL
   // Local dev: direct backend access
   : 'http://localhost:5002/api';
 

@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const Perfume = require('../models/Perfume');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
+const { sendOrderConfirmationEmail } = require('../services/emailService');
 
 const DELIVERY_PRICES = {
   standard: 20,
@@ -195,6 +196,20 @@ exports.createOrder = async (req, res, next) => {
       await User.findByIdAndUpdate(req.user._id, update);
     }
 
+    // ── Send confirmation email (fire-and-forget — never fails the order) ──
+    let emailSent = false;
+    try {
+      const emailResult = await sendOrderConfirmationEmail(order);
+      emailSent = emailResult.success;
+      if (!emailResult.success) {
+        console.error(`[ORDER] Email confirmation failed for order ${order._id}: ${emailResult.error}`);
+      }
+    } catch (emailError) {
+      // Safety net — should never reach here as sendOrderConfirmationEmail
+      // catches its own errors, but guard against unexpected crashes.
+      console.error(`[ORDER] Unexpected email error for order ${order._id}: ${emailError.message}`);
+    }
+
     res.status(201).json({
       _id: order._id,
       name: order.name,
@@ -211,7 +226,8 @@ exports.createOrder = async (req, res, next) => {
       createdAt: order.createdAt,
       freeItemApplied,
       freeItemDiscount,
-      freeItemName
+      freeItemName,
+      emailSent
     });
   } catch (error) {
     res.status(400);

@@ -44,7 +44,7 @@ export default function Profile() {
       }
     };
     fetchOrders();
-  }, [user, navigate, updateUser]);
+  }, [user, authToken, navigate, updateUser]);
 
   if (!user) return null;
 
