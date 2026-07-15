@@ -53,13 +53,19 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
+      // 'unsafe-inline' is required for Create React App's inline scripts;
+      // in a production build CRA generates hashed script filenames, but
+      // the runtime still injects inline scripts for webpack hot reload.
       scriptSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
       imgSrc: ["'self'", 'data:', 'https:', 'http://localhost:5002'],
-      connectSrc: ["'self'", 'https://api.mongodb.com'],
+      // Backend connects to MongoDB via driver, not the Data API — removing
+      // api.mongodb.com from connect-src as it's unused and over-permissive.
+      connectSrc: ["'self'"],
       frameAncestors: ["'none'"],
       formAction: ["'self'"],
+      baseUri: ["'self'"],
       upgradeInsecureRequests: [],
     },
   },

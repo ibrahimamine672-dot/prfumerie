@@ -15,7 +15,12 @@ exports.getPerfumes = async (req, res, next) => {
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
     if (search) {
-      query.$text = { $search: search };
+      // Sanitize search input: strip HTML (from xssSanitize on query params) and
+      // limit length to prevent abuse of MongoDB text search.
+      const sanitized = search.trim().slice(0, 100);
+      if (sanitized.length >= 2) {
+        query.$text = { $search: sanitized };
+      }
     }
 
     const sortOptions = {};

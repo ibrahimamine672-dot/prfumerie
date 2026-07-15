@@ -13,12 +13,16 @@ const validate = (req, res, next) => {
 };
 
 /**
- * Middleware to sanitize all string values in req.body against XSS.
+ * Middleware to sanitize all string values in req.body and req.query against XSS.
  * Strips HTML tags and escapes special characters on all text input fields.
+ * Query parameters are sanitized too — they can carry XSS payloads via URLs.
  */
 const xssSanitize = (req, res, next) => {
   if (req.body && typeof req.body === 'object') {
     sanitizeObject(req.body);
+  }
+  if (req.query && typeof req.query === 'object') {
+    sanitizeObject(req.query);
   }
   next();
 };
